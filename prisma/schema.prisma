@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// In Prisma 7+, datasource is defined here for standard usage
+// The error suggested moving it, but for standard migrate dev it still needs to be here.
+// I suspect the error was due to 'prisma init' creating a 'prisma.config.ts' which takes precedence.
+// I will try to delete prisma.config.ts and stick to standard usage, OR configure prisma.config.ts properly.
+// Let's first try standard schema approach which is simpler for this project.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  username  String
+  bio       String?
+  avatar    String?
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+  lastUsernameChange DateTime?
+  lastAvatarChange   DateTime?
+  
+  // Gamification & Stats
+  level     Int      @default(1)
+  xp        Int      @default(0)
+  streak    Int      @default(0)
+  points    Int      @default(0) // Shop currency - starts at 0
+  
+  // Customization
+  theme     String   @default("dark") 
+  font      String   @default("inter") // inter, montserrat
+  
+  reviews     Review[]
+  badges      UserBadge[]
+  library     LibraryEntry[]
+  downloads   UserDownload[]
+  favorites   Favorite[]
+  collections Collection[]
+  inventory   UserInventory[]
+  sentGifts   Gift[] @relation("SentGifts")
+  receivedGifts Gift[] @relation("ReceivedGifts")
+  
+  // Social
+  posts            Post[]
+  stories          Story[]
+  comments         Comment[]
+  likes            Like[]
+  
+  // Messaging
+  sentMessages     Message[]    @relation("SentMessages")
+  receivedMessages Message[]    @relation("ReceivedMessages")
+  
+  // Friendships
+  friendshipsInitiated Friendship[] @relation("FriendshipInitiator")
+  friendshipsReceived  Friendship[] @relation("FriendshipReceiver")
+  
+  // Admin Relations
+  auditLogs   AuditLog[]
+  reports     Report[]
+  tickets     Ticket[]
+  replies     TicketReply[]
+  
+  // PDF Reader
+  readingProgress ReadingProgress[]
+  bookmarks       Bookmark[]
+  notes           Note[]
+
+  // Live Activity
+  activities      UserActivity[]
+}
+
+model UserActivity {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // "VIEW_BOOK", "READING", "STORE_BROWSE"
+  targetId  Int?     // bookId etc.
+  createdAt DateTime @default(now())
+
+  @@index([type, targetId])
+  @@index([createdAt])
+}
+
+model PageContent {
+  slug      String   @id
+  title     String
+  content   String
+  updatedAt DateTime @default(now())
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  image     String?  // URL for custom background
+  gradient  String?  // CSS gradient fallback
+  books     Book[]
+}
+
+model Badge {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  icon        String   // SVG string or Icon Name
+  users       UserBadge[]
+}
+
+model UserBadge {
+  userId    Int
+  badgeId   Int
+  assignedAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+
+  @@id([userId, badgeId])
+}
+
+
+
+model Book {
+  id          Int      @id @default(autoincrement())
+  title       String
+  author      String
+  cover       String
+  categoryId  Int      // Now required, proper foreign key
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  rating      Float    @default(0)
+  isNew       Boolean  @default(false)
+  pages       Int?
+  year        Int?
+  description String?
+  visibility  String   @default("PUBLIC") // PUBLIC, ADMIN_ONLY, PRIVATE
+  pdfUrl      String?  // Path to PDF file
+  isbn        String?  // ISBN Code
+  
+  reviews     Review[]
+  posts       Post[]
+  libraryEntries LibraryEntry[]
+  downloads      UserDownload[]
+  favorites      Favorite[]
+  collections    CollectionBook[]
+  
+  // PDF Reader
+  readingProgress ReadingProgress[]
+  bookmarks       Bookmark[]
+  notes           Note[]
+
+  @@index([categoryId])
+  @@index([title])
+  @@index([author])
+  @@index([rating])
+}
+
+model LibraryEntry {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bookId    Int
+  addedAt   DateTime @default(now())
+  status    String   @default("WANT_TO_READ") // READING, READ, WANT_TO_READ
+  progress  Int      @default(0)
+
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
+
+model UserDownload {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bookId    Int
+  downloadedAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bookId    Int
+  addedAt   DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
+
+model Collection {
+  id        Int      @id @default(autoincrement())
+  name      String
+  userId    Int
+  image     String?  // Optional cover image URL
+  description String? // Optional description
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  books     CollectionBook[]
+}
+
+model CollectionBook {
+  collectionId Int
+  bookId       Int
+  addedAt      DateTime @default(now())
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  book         Book       @relation(fields: [bookId], references: [id])
+
+  @@id([collectionId, bookId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  text      String
+  rating    Int
+  spoiler   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  bookId    Int
+  book      Book     @relation(fields: [bookId], references: [id])
+  
+  // Like system
+  likes     Int      @default(0)
+  dislikes  Int      @default(0)
+  votes     ReviewVote[]
+  
+  // Reply system (nested comments)
+  parentId  Int?
+  parent    Review?  @relation("ReviewReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Review[] @relation("ReviewReplies")
+  
+  // Moderation
+  status    String   @default("APPROVED") // PENDING, APPROVED, REJECTED
+}
+
+model ReviewVote {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  reviewId  Int
+  type      String   // "LIKE" or "DISLIKE"
+  createdAt DateTime @default(now())
+  
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, reviewId])
+}
+
+
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  details   String?
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  reason     String
+  type       String   // REVIEW, USER, OTHER
+  targetId   Int
+  reporterId Int
+  mined      Boolean  @default(false) 
+  status     String   @default("OPEN") 
+  createdAt  DateTime @default(now())
+  
+  reporter   User     @relation(fields: [reporterId], references: [id])
+}
+
+model Newsletter {
+  id             Int      @id @default(autoincrement())
+  subject        String
+  content        String
+  sentAt         DateTime @default(now())
+  recipientCount Int
+}
+
+model Ticket {
+  id        Int      @id @default(autoincrement())
+  subject   String
+  message   String
+  status    String   @default("OPEN") // OPEN, CLOSED
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  replies   TicketReply[]
+}
+
+model TicketReply {
+  id        Int      @id @default(autoincrement())
+  message   String
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  userId    Int 
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// =====================
+// PDF READER FEATURES
+// =====================
+
+// Reading Progress - Tracks current page, reading time, and settings
+model ReadingProgress {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  bookId        Int
+  currentPage   Int      @default(1)
+  totalPages    Int      @default(0)
+  percentage    Float    @default(0)
+  lastReadAt    DateTime @default(now())
+  totalReadTime Int      @default(0) // in seconds
+  
+  // Reading preferences
+  bgColor       String   @default("#1a1a2e")
+  pageColor     String   @default("#ffffff")
+  fontFamily    String   @default("default")
+  fontSize      Int      @default(100)
+  darkMode      Boolean  @default(true)
+  
+  user          User     @relation(fields: [userId], references: [id])
+  book          Book     @relation(fields: [bookId], references: [id])
+  
+  @@unique([userId, bookId])
+}
+
+// Bookmarks - Save reading position with title and description
+model Bookmark {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  bookId      Int
+  pageNumber  Int
+  title       String?  // Optional title for bookmark
+  description String?  // Optional description
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
+  book        Book     @relation(fields: [bookId], references: [id])
+  
+  @@index([userId, bookId])
+}
+
+// Notes - Add notes to specific pages
+model Note {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  bookId     Int
+  pageNumber Int
+  content    String
+  color      String   @default("yellow") // yellow, blue, green, pink
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  user       User     @relation(fields: [userId], references: [id])
+  book       Book     @relation(fields: [bookId], references: [id])
+  
+  @@index([userId, bookId])
+}
+
+// =====================
+// POINTS SHOP SYSTEM
+// =====================
+
+model ShopItem {
+  id          Int       @id @default(autoincrement())
+  name        String
+  type        String    // "FRAME", "THEME", "LOOTBOX"
+  price       Int
+  rarity      String    @default("COMMON") // COMMON, RARE, EPIC, LEGENDARY
+  image       String    // Emoji or URL
+  limited     Boolean   @default(false)
+  stock       Int?
+  description String?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  
+  purchases   UserInventory[]
+}
+
+model UserInventory {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  itemId      Int
+  purchasedAt DateTime @default(now())
+  equipped    Boolean  @default(false)
+  
+  user        User     @relation(fields: [userId], references: [id])
+  item        ShopItem @relation(fields: [itemId], references: [id])
+  
+  @@unique([userId, itemId])
+}
+
+model Gift {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  receiverId  Int
+  itemId      Int?
+  points      Int?
+  message     String?
+  cardType    String?  // "birthday", "thanks", etc.
+  createdAt   DateTime @default(now())
+  
+  sender      User     @relation("SentGifts", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedGifts", fields: [receiverId], references: [id])
+}
+
+// =====================
+// FRIENDSHIP SYSTEM
+// =====================
+
+model Friendship {
+  id          Int      @id @default(autoincrement())
+  userId      Int      // The user who initiated
+  friendId    Int      // The friend
+  status      String   @default("PENDING") // PENDING, ACCEPTED, BLOCKED
+  createdAt   DateTime @default(now())
+  acceptedAt  DateTime?
+  
+  user        User     @relation("FriendshipInitiator", fields: [userId], references: [id])
+  friend      User     @relation("FriendshipReceiver", fields: [friendId], references: [id])
+  
+  @@unique([userId, friendId])
+}
+
+// =====================
+// SYSTEM SETTINGS
+// =====================
+
+model SystemSetting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+
+// =====================
+// SOCIAL FEED SYSTEM
+// =====================
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  content   String?
+  image     String?
+  bookId    Int?     // Optional citation
+  song      String?  // JSON string for song info {title, artist, url}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book?    @relation(fields: [bookId], references: [id])
+  
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Story {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  image     String
+  type      String   @default("IMAGE") // IMAGE, VIDEO
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  content   String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  receiverId  Int
+  content     String?
+  mediaType   String?  // "gif", "image", "pdf", "emoji"
+  mediaUrl    String?  // URL for media content
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String   // "MESSAGE", "FRIEND_REQUEST", "FRIEND_ACCEPTED", "GIFT", "LIKE", "COMMENT"
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?  // Optional link to navigate
+  fromUserId Int?    // Optional: who triggered this notification
+  createdAt DateTime @default(now())
+  
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+model FriendActivity {
+  id          Int      @id @default(autoincrement())
+  userId      Int      // User this activity belongs to
+  friendId    Int      // The other user involved
+  type        String   // "FRIEND_ADDED", "FRIEND_REMOVED", "FRIEND_REMOVED_BY"
+  createdAt   DateTime @default(now())
+  
+  @@index([userId, createdAt])
+}

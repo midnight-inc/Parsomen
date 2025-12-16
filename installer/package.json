@@ -1,0 +1,47 @@
+{
+    "name": "parsomen-installer",
+    "version": "1.0.0",
+    "description": "Parşomen Custom Installer",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "electron .",
+        "dist": "electron-builder"
+    },
+    "build": {
+        "appId": "com.parsomen.installer",
+        "productName": "Parsomen Installer",
+        "directories": {
+            "output": "dist"
+        },
+        "win": {
+            "target": "portable",
+            "icon": "build/icon.png",
+            "requestedExecutionLevel": "asInvoker"
+        },
+        "portable": {
+            "artifactName": "Parsomen_Setup.exe"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "index.html",
+            "styles.css",
+            "renderer.js",
+            "app-package/**/*"
+        ],
+        "extraResources": [
+            {
+                "from": "../dist/win-unpacked",
+                "to": "app-package",
+                "filter": [
+                    "**/*"
+                ]
+            }
+        ]
+    },
+    "devDependencies": {
+        "electron": "^28.0.0",
+        "electron-builder": "^24.0.0"
+    }
+}

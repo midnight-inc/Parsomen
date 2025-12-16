@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parşomen Kurulum</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="installer-container">
+        <!-- Title Bar -->
+        <div class="title-bar" id="titleBar">
+            <div class="title-text">
+                <span class="logo">📚</span> Parşomen Kurulum Sihirbazı
+            </div>
+            <button class="close-btn" id="closeBtn">✕</button>
+        </div>
+
+        <!-- Steps Container -->
+        <div class="steps-container">
+
+            <!-- Step 1: Welcome -->
+            <div class="step active" id="step1">
+                <div class="step-content welcome">
+                    <div class="welcome-icon">📖</div>
+                    <h1>Parşomen'e Hoş Geldiniz</h1>
+                    <p class="subtitle">Dijital kitaplığınız masaüstünüzde</p>
+                    <div class="features">
+                        <div class="feature">
+                            <span class="feature-icon">📚</span>
+                            <span>Binlerce kitaba erişim</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🎨</span>
+                            <span>Kişiselleştirilebilir deneyim</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">👥</span>
+                            <span>Topluluk özellikleri</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🏆</span>
+                            <span>Rozetler ve başarılar</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-actions">
+                    <button class="btn btn-primary" id="toStep2">
+                        Kuruluma Başla <span class="arrow">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Directory Selection -->
+            <div class="step" id="step2">
+                <div class="step-content">
+                    <div class="step-icon">📁</div>
+                    <h2>Kurulum Konumu</h2>
+                    <p>Parşomen'in yükleneceği klasörü seçin</p>
+
+                    <div class="path-selector">
+                        <input type="text" id="installPath" readonly>
+                        <button class="btn btn-secondary" id="browsePath">Gözat</button>
+                    </div>
+
+                    <div class="checkbox-container"
+                        style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.8); font-size: 14px; cursor: pointer;">
+                        <input type="checkbox" id="createDesktopShortcut" checked
+                            style="accent-color: #8b5cf6; width: 16px; height: 16px; cursor: pointer;">
+                        <label for="createDesktopShortcut" style="cursor: pointer;">Masaüstü kısayolu oluştur</label>
+                    </div>
+
+                    <div class="disk-info">
+                        <span class="info-label">Gerekli alan:</span>
+                        <span class="info-value">~350 MB</span>
+                    </div>
+                </div>
+                <div class="step-actions">
+                    <button class="btn btn-outline" id="backToStep1">← Geri</button>
+                    <button class="btn btn-primary" id="toStep3">
+                        Kur <span class="arrow">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Installation Progress -->
+            <div class="step" id="step3">
+                <div class="step-content installing">
+                    <div class="installing-animation">
+                        <div class="book-loader">
+                            <div class="page"></div>
+                            <div class="page"></div>
+                            <div class="page"></div>
+                        </div>
+                    </div>
+                    <h2>Kuruluyor...</h2>
+                    <p id="currentFile">Dosyalar kopyalanıyor...</p>
+
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Complete -->
+            <div class="step" id="step4">
+                <div class="step-content complete">
+                    <div class="success-icon">✓</div>
+                    <h2>Kurulum Tamamlandı!</h2>
+                    <p>Parşomen başarıyla bilgisayarınıza kuruldu.</p>
+
+                    <div class="shortcuts-info">
+                        <div class="shortcut-item">
+                            <span>🖥️</span> Masaüstü kısayolu oluşturuldu
+                        </div>
+                        <div class="shortcut-item">
+                            <span>📋</span> Başlat menüsüne eklendi
+                        </div>
+                    </div>
+                </div>
+                <div class="step-actions">
+                    <button class="btn btn-outline" id="closeFinish">Kapat</button>
+                    <button class="btn btn-primary btn-launch" id="launchApp">
+                        🚀 Parşomen'i Başlat
+                    </button>
+                </div>
+            </div>
+
+            <!-- UNINSTALL STEPS -->
+
+            <!-- Uninstall Step 1: Confirm -->
+            <div class="step" id="step-uninstall-1">
+                <div class="step-content welcome">
+                    <div class="welcome-icon">🗑️</div>
+                    <h1>Parşomen'i Kaldır</h1>
+                    <p class="subtitle">Parşomen uygulamasını bilgisayarınızdan kaldırmak üzeresiniz.</p>
+                    <div class="features">
+                        <div class="feature"
+                            style="background: rgba(255, 77, 77, 0.1); border-color: rgba(255, 77, 77, 0.2);">
+                            <span class="feature-icon">⚠️</span>
+                            <span>Uygulama silinecek</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">💾</span>
+                            <span>Kullanıcı verileri korunacak</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-actions">
+                    <button class="btn btn-outline" id="cancelUninstall">İptal</button>
+                    <button class="btn btn-primary" id="startUninstall"
+                        style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);">
+                        Kaldır <span class="arrow">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Uninstall Step 2: Progress -->
+            <div class="step" id="step-uninstall-2">
+                <div class="step-content installing">
+                    <div class="installing-animation">
+                        <div class="book-loader">
+                            <div class="page" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
+                            <div class="page" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
+                            <div class="page" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
+                        </div>
+                    </div>
+                    <h2>Kaldırılıyor...</h2>
+                    <p id="uninstallCurrentFile">Dosyalar siliniyor...</p>
+
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="uninstallProgressFill"
+                                style="background: linear-gradient(90deg, #ef4444, #dc2626, #ef4444);"></div>
+                        </div>
+                        <span class="progress-text" id="uninstallProgressText">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Uninstall Step 3: Complete -->
+            <div class="step" id="step-uninstall-3">
+                <div class="step-content complete">
+                    <div class="success-icon"
+                        style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);">
+                        ✓</div>
+                    <h2>Kaldırma Tamamlandı</h2>
+                    <p>Parşomen başarıyla bilgisayarınızdan kaldırıldı.</p>
+                    <p style="font-size: 13px; margin-top: 10px; opacity: 0.6;">Sizi tekrar aramızda görmeyi umuyoruz!
+                    </p>
+                </div>
+                <div class="step-actions">
+                    <button class="btn btn-outline" id="closeUninstall">Kapat</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="indicator active" data-step="1"></div>
+            <div class="indicator" data-step="2"></div>
+            <div class="indicator" data-step="3"></div>
+            <div class="indicator" data-step="4"></div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

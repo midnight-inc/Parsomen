@@ -1,0 +1,33 @@
+# Vercel Ignore File
+# Exclude large binaries and installer files to avoid 100MB limit
+
+# Installer executable (150MB+)
+public/downloads/
+public/downloads/**/*
+
+# Installer source code and builds
+installer/
+installer/**/*
+
+# Electron main process source
+electron/
+electron/**/*
+
+# Local build artifacts
+dist/
+dist/**/*
+
+# Next.js build
+.next/
+
+# Dependencies (Vercel installs them)
+node_modules/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite-journal
+
+# System files
+.DS_Store
+Thumbs.db
