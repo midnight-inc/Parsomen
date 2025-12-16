@@ -46,3 +46,8 @@ next-env.d.ts
 
 # Parsomen Specific
 /installer/node_modules
+/installer/dist
+/installer/build
+/public/downloads/*.exe
+
+

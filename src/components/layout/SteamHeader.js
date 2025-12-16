@@ -36,28 +36,36 @@ const SYSTEM_MENUS = {
 };
 
 // --- Big Navigation Data ---
-const NAV_MENUS = (username) => ({
-    'AKIŞ': {
-        href: '/feed',
-        items: [] // No dropdown
-    },
-    'MAĞAZA': {
-        href: '/store',
-        items: ['Öne Çıkanlar', 'Editör Seçimi', 'Hediye Listesi', 'Puan Dükkanı', 'Haberler', 'İstatistikler']
-    },
-    'KÜTÜPHANE': {
-        href: '/library',
-        items: ['Anasayfa', 'Koleksiyonlar', 'İndirmeler']
-    },
-    'TOPLULUK': {
-        href: '/community',
-        items: ['Anasayfa', 'Tartışmalar', 'Sıralamalar']
-    },
-    [username ? username.toUpperCase() : 'PROFİL']: {
-        href: username ? `/profile/${username}` : '/login',
-        items: ['Aktivite', 'Profil', 'Arkadaşlar', 'Gruplar', 'Rozetler', 'Envanter']
+const NAV_MENUS = (username) => {
+    const menus = {
+        'AKIŞ': {
+            href: '/feed',
+            items: []
+        },
+        'MAĞAZA': {
+            href: '/store',
+            items: ['Öne Çıkanlar', 'Editör Seçimi', 'Hediye Listesi', 'Puan Dükkanı', 'Haberler', 'İstatistikler']
+        },
+        'KÜTÜPHANE': {
+            href: '/library',
+            items: ['Anasayfa', 'Koleksiyonlar', 'İndirmeler']
+        },
+        'TOPLULUK': {
+            href: '/community',
+            items: ['Anasayfa', 'Tartışmalar', 'Sıralamalar']
+        }
+    };
+
+    // Only allow User Menu if logged in
+    if (username) {
+        menus[username.toUpperCase()] = {
+            href: `/profile/${username}`,
+            items: ['Aktivite', 'Profil', 'Arkadaşlar', 'Gruplar', 'Rozetler', 'Envanter']
+        };
     }
-});
+
+    return menus;
+};
 
 export default function SteamHeader() {
     const { user, logout, loading } = useAuth();
@@ -91,7 +99,7 @@ export default function SteamHeader() {
                     {/* Big Menus - Including "Parsomen" etc implicitly or via specific menus */}
                     {/* Merged View: Store, Library, Community, User */}
                     <div className="flex items-center gap-2">
-                        {Object.entries(NAV_MENUS(user?.username || 'MİSAFİR')).map(([label, data]) => (
+                        {Object.entries(NAV_MENUS(user?.username)).map(([label, data]) => (
                             <div
                                 key={label}
                                 className="relative group"

@@ -37,12 +37,14 @@
       "installerHeader": "build/installerHeader.bmp"
     },
     "npmRebuild": false,
-    "asar": false,
+    "asar": true,
     "files": [
       "electron/**/*",
       "package.json",
-      "public/icons/**/*",
-      "!node_modules/**/*"
+      "public/**/*",
+      ".next/server/**/*",
+      ".next/static/**/*",
+      "node_modules/**/*"
     ]
   },
   "dependencies": {},

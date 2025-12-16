@@ -25,11 +25,11 @@ export default async function AdminDashboard() {
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <Card title="Toplam Kullanıcı" value={userCount} icon={<FaUsers />} color="text-blue-500 bg-blue-500/10 border-blue-500/20" />
-            <Card title="Aktif Kitaplar" value={bookCount} icon={<FaBookOpen />} color="text-green-500 bg-green-500/10 border-green-500/20" />
-            <Card title="Kategoriler" value={categoryCount} icon={<FaTags />} color="text-pink-500 bg-pink-500/10 border-pink-500/20" />
+            <Card title="Toplam Kullanıcı" value={userCount} icon={<FaUsers />} color="text-blue-500 bg-blue-500/10 border-blue-500/20" href="/admin/users" />
+            <Card title="Aktif Kitaplar" value={bookCount} icon={<FaBookOpen />} color="text-green-500 bg-green-500/10 border-green-500/20" href="/admin/books" />
+            <Card title="Kategoriler" value={categoryCount} icon={<FaTags />} color="text-pink-500 bg-pink-500/10 border-pink-500/20" href="/admin/categories" />
             <Card title="İncelemeler" value={reviewCount} icon={<FaComments />} color="text-purple-500 bg-purple-500/10 border-purple-500/20" />
-            <Card title="Kazanılan Rozetler" value={badgeCount} icon={<FaMedal />} color="text-yellow-500 bg-yellow-500/10 border-yellow-500/20" />
+            <Card title="Kazanılan Rozetler" value={badgeCount} icon={<FaMedal />} color="text-yellow-500 bg-yellow-500/10 border-yellow-500/20" href="/admin/badges" />
          </div>
 
          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
@@ -49,14 +49,22 @@ export default async function AdminDashboard() {
    );
 }
 
-function Card({ title, value, icon, color }) {
-   return (
-      <div className={`p-6 rounded-xl border ${color} backdrop-blur-sm flex flex-col justify-between h-32 hover:scale-105 transition-transform`}>
+// Link wrapper for cards
+function Card({ title, value, icon, color, href }) {
+   const Content = (
+      <div className={`p-6 rounded-xl border ${color} backdrop-blur-sm flex flex-col justify-between h-32 hover:scale-105 transition-transform cursor-pointer`}>
          <div className="flex justify-between items-start">
             <div className="text-sm font-medium opacity-80">{title}</div>
             <div className="text-2xl opacity-80">{icon}</div>
          </div>
          <div className="text-3xl font-bold text-white">{value}</div>
       </div>
-   )
+   );
+
+   if (href) {
+      return <a href={href}>{Content}</a>; // Using simple anchor for admin to force refresh if needed, or Link
+      // Better use Link
+   }
+
+   return Content;
 }

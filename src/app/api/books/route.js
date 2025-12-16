@@ -77,16 +77,19 @@ export async function POST(request) {
             }, { status: 400 });
         }
 
-        // 4. Category handling
+        // 4. Category handling (Case Insensitive)
         let categoryId = null;
         if (json.category) {
-            const category = await prisma.category.findUnique({
-                where: { name: json.category }
+            const category = await prisma.category.findFirst({
+                where: {
+                    name: { equals: json.category, mode: 'insensitive' }
+                }
             });
+
             if (category) {
                 categoryId = category.id;
             } else {
-                // Create category if doesn't exist
+                // Create category if doesn't exist (Title Case)
                 const newCat = await prisma.category.create({
                     data: { name: json.category }
                 });

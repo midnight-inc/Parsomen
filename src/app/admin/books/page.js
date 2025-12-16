@@ -147,6 +147,11 @@ export default function BookManager() {
             return;
         }
 
+        if (!formData.pdfUrl) {
+            toast.error('Lütfen kitabın PDF dosyasını yükleyin.');
+            return;
+        }
+
         try {
             const url = editingId ? `/api/books/${editingId}` : '/api/books';
             const method = editingId ? 'PUT' : 'POST';
