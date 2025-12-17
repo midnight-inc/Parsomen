@@ -21,7 +21,7 @@ export async function POST(req) {
         // Bulk update to unequip
         // Prisma doesn't support updateMany with relation filtering well in all versions, 
         // so we'll update based on IDs found.
-        const frame inventoryIds = userFrames.map(f => f.id);
+        const inventoryIds = userFrames.map(f => f.id);
 
         await prisma.userInventory.updateMany({
             where: { id: { in: inventoryIds } },
