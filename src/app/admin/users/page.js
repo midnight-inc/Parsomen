@@ -91,6 +91,33 @@ export default function UserManager() {
     };
 
     return (
+    const [pointModal, setPointModal] = useState({ open: false, userId: null, username: '', amount: '' });
+
+    const handleGivePoints = async (e) => {
+        e.preventDefault();
+        if (!pointModal.amount || !pointModal.userId) return;
+
+        try {
+            const res = await fetch(`/api/admin/users/${pointModal.userId}/points`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: parseInt(pointModal.amount) })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(data.message);
+                setPointModal({ open: false, userId: null, username: '', amount: '' });
+                fetchUsers(); // Refresh to ensure data consistency
+            } else {
+                toast.error(data.error || 'Puan eklenemedi');
+            }
+        } catch (error) {
+            toast.error('Bir hata oluştu');
+        }
+    };
+
+    return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-center bg-gray-900/40 p-6 rounded-2xl border border-white/5 backdrop-blur-xl gap-4">
@@ -156,8 +183,8 @@ export default function UserManager() {
                                     </td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded-md text-xs font-bold border ${user.role === 'ADMIN'
-                                                ? 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(248,113,113,0.1)]'
-                                                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                            ? 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(248,113,113,0.1)]'
+                                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                             }`}>
                                             {user.role}
                                         </span>
@@ -176,10 +203,18 @@ export default function UserManager() {
                                     <td className="p-4 text-right">
                                         <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                                             <button
+                                                onClick={() => setPointModal({ open: true, userId: user.id, username: user.username, amount: '' })}
+                                                className="p-2 bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white rounded-lg transition-all shadow-lg shadow-green-500/10"
+                                                title="Puan Ver"
+                                            >
+                                                🪙
+                                            </button>
+
+                                            <button
                                                 onClick={() => promoteUser(user)}
                                                 className={`p-2 rounded-lg transition-all ${user.role === 'ADMIN'
-                                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                                        : 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black shadow-lg shadow-yellow-500/10'
+                                                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                                    : 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black shadow-lg shadow-yellow-500/10'
                                                     }`}
                                                 title={user.role === 'ADMIN' ? "Yetkisini Al" : "Yönetici Yap"}
                                             >
@@ -201,6 +236,44 @@ export default function UserManager() {
                     </table>
                 </div>
             </div>
+
+            {/* Point Modal */}
+            {pointModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
+                        <h3 className="text-xl font-bold text-white mb-2">Puan Ver: {pointModal.username}</h3>
+                        <p className="text-gray-400 text-sm mb-6">
+                            Kullanıcıya eklenecek puan miktarını girin. Puan silmek için negatif değer girebilirsiniz (örn: -100).
+                        </p>
+                        <form onSubmit={handleGivePoints}>
+                            <input
+                                type="number"
+                                autoFocus
+                                value={pointModal.amount}
+                                onChange={e => setPointModal({ ...pointModal, amount: e.target.value })}
+                                className="w-full bg-black/50 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-green-500 mb-6 text-lg font-mono placeholder:text-gray-600"
+                                placeholder="Örn: 500"
+                            />
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setPointModal({ open: false, userId: null, username: '', amount: '' })}
+                                    className="px-4 py-2 rounded-xl text-gray-400 hover:bg-white/5 transition-colors font-bold"
+                                >
+                                    İptal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!pointModal.amount}
+                                    className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-green-500/20 disabled:opacity-50 transition-all"
+                                >
+                                    Puan Ver
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
