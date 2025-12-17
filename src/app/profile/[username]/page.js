@@ -231,13 +231,13 @@ export default function PublicProfilePage() {
                                 if (frameGradient && (frameGradient.startsWith('/') || frameGradient.startsWith('http'))) {
                                     return (
                                         <div className="relative w-44 h-44 flex items-center justify-center">
-                                            {/* Frame Overlay */}
-                                            <div className="absolute inset-0 z-20 pointer-events-none">
-                                                <img src={frameGradient} className="w-full h-full object-contain scale-110" alt="Frame" />
+                                            {/* Frame Overlay - Scaled 1.4x */}
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] z-20 pointer-events-none">
+                                                <img src={frameGradient} className="w-full h-full object-contain" alt="Frame" />
                                             </div>
 
                                             {/* Avatar */}
-                                            <div className="w-40 h-40 rounded-full border-4 border-gray-800 bg-black shadow-2xl relative overflow-hidden z-10">
+                                            <div className="w-40 h-40 rounded-full border-4 border-gray-900 bg-black shadow-2xl relative overflow-hidden z-10">
                                                 <div className="w-full h-full bg-gradient-to-b from-gray-700 to-gray-900">
                                                     {(isEditing ? editForm.avatar : user.avatar) ? (
                                                         <img src={isEditing ? editForm.avatar : user.avatar} className="w-full h-full object-cover" alt="avatar" />
@@ -275,43 +275,51 @@ export default function PublicProfilePage() {
                                     );
                                 }
 
-                                // 2. CSS Gradient Frame (Legacy)
+                                // 2. CSS Gradient Frame (Enhanced Steam-like)
                                 const gradientClass = frameGradient ? ((frameGradient.includes('gradient') || frameGradient.includes('from-')) ? (frameGradient.includes('gradient') ? frameGradient : `bg-gradient-to-br ${frameGradient}`) : '') : '';
 
                                 return (
-                                    <div className={`w-40 h-40 rounded-full relative ${gradientClass ? `p-1 ${gradientClass} shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'border-4 border-gray-800 bg-black shadow-2xl'}`}>
-                                        <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-black relative">
-                                            {(isEditing ? editForm.avatar : user.avatar) ? (
-                                                <img src={isEditing ? editForm.avatar : user.avatar} className="w-full h-full object-cover" alt="avatar" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <span className="text-6xl font-bold text-white/20">{profile.username.charAt(0).toUpperCase()}</span>
-                                                </div>
-                                            )}
+                                    <div className="relative w-44 h-44 flex items-center justify-center">
+                                        {/* Glowing Pulse */}
+                                        <div className={`absolute inset-0 rounded-full ${gradientClass} blur-xl opacity-30 animate-pulse`}></div>
+                                        {/* Rotating Border */}
+                                        <div className={`absolute inset-2 rounded-full ${gradientClass} animate-spin-slow`}></div>
 
-                                            {/* Edit Overlay inside the rounded container */}
-                                            {isEditing && (
-                                                <div
-                                                    onClick={handleAvatarClick}
-                                                    className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center transition-opacity cursor-pointer hover:bg-black/70 group/edit z-10"
-                                                >
-                                                    {uploadingAvatar ? (
-                                                        <FaSpinner className="text-white text-2xl animate-spin" />
-                                                    ) : (
-                                                        <>
-                                                            <FaCamera className="text-white text-2xl mb-1 group-hover/edit:scale-110 transition-transform" />
-                                                            <span className="text-[10px] text-white font-medium">Değiştir</span>
-                                                        </>
-                                                    )}
-                                                    <input
-                                                        ref={fileInputRef}
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="hidden"
-                                                        onChange={handleAvatarUpload}
-                                                    />
-                                                </div>
-                                            )}
+                                        {/* Avatar Container */}
+                                        <div className="w-40 h-40 rounded-full relative z-10 p-[4px] bg-black">
+                                            <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-black relative">
+                                                {(isEditing ? editForm.avatar : user.avatar) ? (
+                                                    <img src={isEditing ? editForm.avatar : user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <span className="text-6xl font-bold text-white/20">{profile.username.charAt(0).toUpperCase()}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Edit Overlay inside the rounded container */}
+                                                {isEditing && (
+                                                    <div
+                                                        onClick={handleAvatarClick}
+                                                        className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center transition-opacity cursor-pointer hover:bg-black/70 group/edit z-10"
+                                                    >
+                                                        {uploadingAvatar ? (
+                                                            <FaSpinner className="text-white text-2xl animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <FaCamera className="text-white text-2xl mb-1 group-hover/edit:scale-110 transition-transform" />
+                                                                <span className="text-[10px] text-white font-medium">Değiştir</span>
+                                                            </>
+                                                        )}
+                                                        <input
+                                                            ref={fileInputRef}
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={handleAvatarUpload}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 );
