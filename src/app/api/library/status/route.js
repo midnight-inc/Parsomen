@@ -185,22 +185,21 @@ export async function POST(req) {
                 }
             }
         }
-    }
 
         if (!recentActivity) {
-        await prisma.userActivity.create({
-            data: {
-                userId,
-                type: activityType,
-                targetId: parseInt(bookId)
-            }
-        });
+            await prisma.userActivity.create({
+                data: {
+                    userId,
+                    type: activityType,
+                    targetId: parseInt(bookId)
+                }
+            });
+        }
+
+        return NextResponse.json({ success: true, entry: updatedEntry, earnedXP, bonusMessage });
+
+    } catch (error) {
+        console.error('Library status update error:', error);
+        return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true, entry: updatedEntry, earnedXP, bonusMessage });
-
-} catch (error) {
-    console.error('Library status update error:', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
-}
 }

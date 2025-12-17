@@ -44,14 +44,13 @@ export async function PUT(request, context) {
         }
 
         const updateData = {
-            title: json.title,
-            author: json.author,
-            cover: json.cover,
-            visibility: json.visibility || 'PUBLIC'
-            description: json.description,
-            pages: parseInt(json.pages) || 0,
-            year: parseInt(json.year) || new Date().getFullYear(),
-            visibility: json.visibility || 'PUBLIC',
+            title,
+            author,
+            cover,
+            visibility: visibility || 'PUBLIC',
+            description,
+            pages: parseInt(pages) || 0,
+            year: parseInt(year) || new Date().getFullYear(),
         };
 
         // Only update categoryId if provided
