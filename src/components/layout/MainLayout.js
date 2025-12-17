@@ -1,6 +1,7 @@
 "use client";
 import { FaFire, FaTrophy } from 'react-icons/fa';
 import SteamHeader from './SteamHeader';
+import MobileNav from './MobileNav';
 import RefreshButton from '../ui/RefreshButton';
 import BackButton from '../ui/BackButton';
 import ScrollToTop from '../ui/ScrollToTop';
@@ -69,16 +70,18 @@ export default function MainLayout({ children }) {
       <SteamHeader />
 
       {/* Live Activity Ticker - Sticky below header */}
-      <div className="sticky top-0 z-40">
+      <div className="sticky top-0 z-40 hidden lg:block">
         <LiveStatsTicker />
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 relative w-full overflow-y-auto custom-scrollbar">
-        <div className="container mx-auto px-4 py-8 relative z-10" suppressHydrationWarning>
+      <main className="flex-1 relative w-full overflow-y-auto custom-scrollbar pb-20 lg:pb-0">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 relative z-10" suppressHydrationWarning>
           {children}
         </div>
       </main>
+
+      <MobileNav />
 
       <RefreshButton />
       <BackButton />

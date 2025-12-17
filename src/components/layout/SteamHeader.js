@@ -153,16 +153,8 @@ export default function SteamHeader() {
             <div className="bg-black/90 backdrop-blur-md border-b border-gray-800 px-4 py-4 sticky top-0 z-50" suppressHydrationWarning>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 lg:gap-8" suppressHydrationWarning>
-                        {/* Mobile Menu Toggle */}
-                        <button
-                            className="lg:hidden text-2xl text-gray-300 hover:text-white p-2"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setMobileMenuOpen(!mobileMenuOpen);
-                            }}
-                        >
-                            {mobileMenuOpen ? <div className='text-3xl'>&times;</div> : <div>&#9776;</div>}
-                        </button>
+                        {/* Mobile Menu Toggle - REMOVED for Bottom Nav Strategy */}
+                        {/* <button className="lg:hidden..." ... /> */}
 
                         {/* Logo */}
                         <Link href="/store" className="text-xl md:text-2xl font-bold tracking-widest uppercase hover:opacity-80 transition-opacity flex items-center gap-2" style={{ fontFamily: "'Motiva Sans', sans-serif" }}>
