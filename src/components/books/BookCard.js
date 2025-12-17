@@ -39,9 +39,8 @@ export default function BookCard({ book }) {
                             src={book.cover}
                             alt={book.title}
                             fill
-                            sizes="(max-width: 768px) 50vw, 20vw"
+                            sizes="(max-width: 768px) 33vw, 20vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
-                            unoptimized
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-600 bg-gray-900">Kapak Yok</div>
