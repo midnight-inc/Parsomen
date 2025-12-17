@@ -1,4 +1,5 @@
 # 📜 Parşomen 
+<!-- Last Deploy Trigger: Force Push 2025-12-17 -->
 
 > *Kitap kurtları için yeni nesil sosyal dijital kütüphane ve okuma platformu.*
 
