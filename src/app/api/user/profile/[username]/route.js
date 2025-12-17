@@ -44,6 +44,10 @@ export async function GET(req, { params }) {
                 collections: {
                     where: { isPublic: true }
                 },
+                inventory: {
+                    where: { equipped: true, item: { type: 'FRAME' } },
+                    include: { item: true }
+                },
                 badges: { include: { badge: true } },
                 reviews: {
                     include: { book: true },
@@ -109,6 +113,10 @@ export async function GET(req, { params }) {
                         favorites: true,
                         collections: {
                             where: { isPublic: true }
+                        },
+                        inventory: {
+                            where: { equipped: true, item: { type: 'FRAME' } },
+                            include: { item: true }
                         },
                         badges: { include: { badge: true } },
                         reviews: {
@@ -212,6 +220,7 @@ export async function GET(req, { params }) {
                 friendCount,
                 friendshipStatus,
                 recentActivity,
+                inventory: user.inventory || [],
                 isOwnProfile
             }
         });

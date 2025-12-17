@@ -237,8 +237,8 @@ export default function UserInventoryPage() {
                             key={filter.id}
                             onClick={() => setActiveFilter(filter.id)}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border backdrop-blur-sm transition-all ${activeFilter === filter.id
-                                    ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:bg-white/10'
+                                ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:bg-white/10'
                                 }`}
                         >
                             <filter.icon className="text-sm" />
@@ -295,9 +295,13 @@ export default function UserInventoryPage() {
                                     onClick={() => setSelectedItem(inv)}
                                     className="w-full aspect-square flex flex-col items-center justify-center p-4"
                                 >
-                                    <span className="text-4xl mb-2">
+                                    <span className="text-4xl mb-2 flex justify-center w-full">
                                         {item.image?.startsWith('/') ? (
                                             <img src={item.image} alt={item.name} className="w-12 h-12 object-contain" />
+                                        ) : (item.type === 'FRAME' || item.type === 'frame') ? (
+                                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${item.image.includes('gradient') ? item.image : (item.image.includes('from') ? item.image : `from-gray-500 to-gray-700`)} p-1 shadow-lg`}>
+                                                <div className="w-full h-full bg-black rounded-full"></div>
+                                            </div>
                                         ) : (
                                             item.image || '🎁'
                                         )}
@@ -311,8 +315,8 @@ export default function UserInventoryPage() {
                                     onClick={(e) => { e.stopPropagation(); handleEquip(item.id, inv.equipped); }}
                                     disabled={equipping === item.id}
                                     className={`w-full py-2.5 text-xs font-medium transition-all backdrop-blur-sm ${inv.equipped
-                                            ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border-t border-red-500/20'
-                                            : 'bg-white/5 hover:bg-white/10 text-white/80 border-t border-white/10'
+                                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border-t border-red-500/20'
+                                        : 'bg-white/5 hover:bg-white/10 text-white/80 border-t border-white/10'
                                         } ${equipping === item.id ? 'opacity-50 cursor-wait' : ''}`}
                                 >
                                     {equipping === item.id ? '...' : (inv.equipped ? 'Çıkar' : 'Kuşan')}
@@ -347,9 +351,13 @@ export default function UserInventoryPage() {
                             return (
                                 <div className="text-center">
                                     <div className={`w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br ${rarity.gradient} border ${rarity.border} flex items-center justify-center mb-4`}>
-                                        <span className="text-5xl">
+                                        <span className="text-5xl flex justify-center w-full">
                                             {item.image?.startsWith('/') ? (
                                                 <img src={item.image} alt={item.name} className="w-16 h-16 object-contain" />
+                                            ) : (item.type === 'FRAME' || item.type === 'frame') ? (
+                                                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${item.image.includes('gradient') ? item.image : (item.image.includes('from') ? item.image : `from-gray-500 to-gray-700`)} p-1 shadow-xl`}>
+                                                    <div className="w-full h-full bg-black rounded-full"></div>
+                                                </div>
                                             ) : (
                                                 item.image || '🎁'
                                             )}
@@ -376,8 +384,8 @@ export default function UserInventoryPage() {
                                     <button
                                         onClick={() => { handleEquip(item.id, selectedItem.equipped); setSelectedItem(null); }}
                                         className={`w-full py-3 rounded-xl font-medium transition-all ${selectedItem.equipped
-                                                ? 'bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300'
-                                                : 'bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300'
+                                            ? 'bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300'
+                                            : 'bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300'
                                             }`}
                                     >
                                         {selectedItem.equipped ? 'Çıkar' : 'Kuşan'}
