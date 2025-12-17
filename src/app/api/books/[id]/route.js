@@ -47,7 +47,7 @@ export async function PUT(request, context) {
             title: json.title,
             author: json.author,
             cover: json.cover,
-            pdfUrl: json.pdfUrl || null,
+            visibility: json.visibility || 'PUBLIC'
             description: json.description,
             pages: parseInt(json.pages) || 0,
             year: parseInt(json.year) || new Date().getFullYear(),

@@ -70,7 +70,7 @@ export async function GET(request) {
                     year: info.publishedDate ? parseInt(info.publishedDate.substring(0, 4)) : new Date().getFullYear(),
                     category: info.categories ? info.categories[0] : 'Genel',
                     cover: cover,
-                    pdfUrl: pdf,
+
                     language: info.language
                 };
             });

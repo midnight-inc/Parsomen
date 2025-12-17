@@ -9,7 +9,7 @@ export const MOCK_BOOKS = [
         isNew: true,
         pages: 256,
         year: 1934,
-        pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+
         description: "Gece yarısından sonra Doğu Ekspresi'ni yavaşlatan kar fırtınası, cinayeti örtbas etmek isteyenler için mükemmel bir fırsattı. Ama trende Hercule Poirot vardı...",
         reviews: [
             { id: 101, user: "Selin", text: "Sonu inanılmazdı! Kesinlikle okuyun.", rating: 5, spoiler: false },

@@ -50,20 +50,12 @@ export default async function DownloadsPage() {
                                 <p className="text-xs text-gray-600 mt-1">İndirilme: {new Date(item.downloadedAt).toLocaleDateString('tr-TR')}</p>
                             </div>
 
-                            {item.book.pdfUrl ? (
-                                <a
-                                    href={item.book.pdfUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg font-bold hover:bg-blue-600/40 transition-colors flex items-center gap-2"
-                                >
-                                    <FaDownload /> Tekrar İndir
-                                </a>
-                            ) : (
-                                <button disabled className="bg-gray-800 text-gray-600 px-4 py-2 rounded-lg font-bold cursor-not-allowed flex items-center gap-2">
-                                    <FaDownload /> PDF Yok
-                                </button>
-                            )}
+                            {/* PDF Removed */}
+                            <div className="mt-4 flex gap-2">
+                                <span className="bg-gray-800 text-gray-500 px-3 py-1 rounded text-xs select-none">
+                                    İndirme Özelliği Kaldırıldı
+                                </span>
+                            </div>
                         </div>
                     ))}
                 </div>
