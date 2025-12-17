@@ -25,16 +25,6 @@ export async function GET() {
             points: true,
             font: true,
             theme: true,
-            id: true,
-            username: true,
-            email: true,
-            avatar: true,
-            role: true,
-            level: true,
-            xp: true,
-            points: true,
-            font: true,
-            theme: true,
             inventory: {
                 where: {
                     equipped: true,
