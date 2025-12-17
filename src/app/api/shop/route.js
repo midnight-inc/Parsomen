@@ -24,6 +24,11 @@ export async function GET() {
 
 // POST - Purchase an item
 export async function POST(req) {
+    // Rate limiting
+    const { checkRateLimit } = await import('@/lib/rateLimit');
+    const rateLimitError = await checkRateLimit(req, 'heavy');
+    if (rateLimitError) return rateLimitError;
+
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get('session')?.value;

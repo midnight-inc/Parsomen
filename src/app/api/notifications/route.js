@@ -50,7 +50,15 @@ export async function PUT(req) {
         const { id } = await req.json();
 
         if (id) {
-            // Mark specific notification
+            // Mark specific notification - SECURITY: verify ownership
+            const notification = await prisma.notification.findUnique({
+                where: { id: parseInt(id) }
+            });
+
+            if (!notification || notification.userId !== session.user.id) {
+                return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+            }
+
             await prisma.notification.update({
                 where: { id: parseInt(id) },
                 data: { read: true }

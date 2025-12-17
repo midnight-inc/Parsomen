@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request, { params }) {
+    // Rate limiting
+    const rateLimitError = await checkRateLimit(request, 'interaction');
+    if (rateLimitError) return rateLimitError;
+
     try {
         const session = await getSession();
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

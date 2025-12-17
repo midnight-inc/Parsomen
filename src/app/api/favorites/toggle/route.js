@@ -2,8 +2,13 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { decrypt } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request) {
+    // Rate limiting
+    const rateLimitError = await checkRateLimit(request, 'interaction');
+    if (rateLimitError) return rateLimitError;
+
     try {
         const cookieStore = await cookies();
         const sessionToken = cookieStore.get('session')?.value;
