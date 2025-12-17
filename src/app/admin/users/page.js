@@ -90,7 +90,7 @@ export default function UserManager() {
         }
     };
 
-    return (
+
     const [pointModal, setPointModal] = useState({ open: false, userId: null, username: '', amount: '' });
 
     const handleGivePoints = async (e) => {
