@@ -54,14 +54,23 @@ export async function PUT(req) {
         }
 
         const { itemId, equipped } = await req.json();
+        const parsedItemId = parseInt(itemId);
+
+        console.log(`User ${session.userId} attempting to ${equipped ? 'equip' : 'unequip'} item ${itemId} (parsed: ${parsedItemId})`);
+
+        if (isNaN(parsedItemId)) {
+            console.error('Invalid itemId:', itemId);
+            return NextResponse.json({ error: 'Invalid item ID' }, { status: 400 });
+        }
 
         // Get the item to check type
         const inventoryItem = await prisma.userInventory.findUnique({
-            where: { userId_itemId: { userId: session.userId, itemId } },
+            where: { userId_itemId: { userId: session.userId, itemId: parsedItemId } },
             include: { item: true }
         });
 
         if (!inventoryItem) {
+            console.error(`Item not found in inventory. User: ${session.userId}, Item: ${parsedItemId}`);
             return NextResponse.json({ error: 'Item not in inventory' }, { status: 404 });
         }
 
@@ -79,13 +88,13 @@ export async function PUT(req) {
 
         // Update the item
         await prisma.userInventory.update({
-            where: { userId_itemId: { userId: session.userId, itemId } },
+            where: { userId_itemId: { userId: session.userId, itemId: parsedItemId } },
             data: { equipped }
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Equip error:', error);
-        return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+        console.error('Equip error details:', error);
+        return NextResponse.json({ error: 'Failed to update: ' + error.message }, { status: 500 });
     }
 }
