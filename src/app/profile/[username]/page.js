@@ -227,7 +227,56 @@ export default function PublicProfilePage() {
                                     }
                                 }
 
-                                const gradientClass = frameGradient ? (frameGradient.includes('gradient') ? frameGradient : `bg-gradient-to-br ${frameGradient}`) : '';
+                                // 1. Image URL Frame
+                                if (frameGradient && (frameGradient.startsWith('/') || frameGradient.startsWith('http'))) {
+                                    return (
+                                        <div className="relative w-44 h-44 flex items-center justify-center">
+                                            {/* Frame Overlay */}
+                                            <div className="absolute inset-0 z-20 pointer-events-none">
+                                                <img src={frameGradient} className="w-full h-full object-contain scale-110" alt="Frame" />
+                                            </div>
+
+                                            {/* Avatar */}
+                                            <div className="w-40 h-40 rounded-full border-4 border-gray-800 bg-black shadow-2xl relative overflow-hidden z-10">
+                                                <div className="w-full h-full bg-gradient-to-b from-gray-700 to-gray-900">
+                                                    {(isEditing ? editForm.avatar : user.avatar) ? (
+                                                        <img src={isEditing ? editForm.avatar : user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <span className="text-6xl font-bold text-white/20">{profile.username.charAt(0).toUpperCase()}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Edit Overlay */}
+                                                {isEditing && (
+                                                    <div
+                                                        onClick={handleAvatarClick}
+                                                        className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center transition-opacity cursor-pointer hover:bg-black/70 group/edit z-30"
+                                                    >
+                                                        {uploadingAvatar ? (
+                                                            <FaSpinner className="text-white text-2xl animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <FaCamera className="text-white text-2xl mb-1 group-hover/edit:scale-110 transition-transform" />
+                                                                <span className="text-[10px] text-white font-medium">Değiştir</span>
+                                                            </>
+                                                        )}
+                                                        <input
+                                                            ref={fileInputRef}
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={handleAvatarUpload}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                // 2. CSS Gradient Frame (Legacy)
+                                const gradientClass = frameGradient ? ((frameGradient.includes('gradient') || frameGradient.includes('from-')) ? (frameGradient.includes('gradient') ? frameGradient : `bg-gradient-to-br ${frameGradient}`) : '') : '';
 
                                 return (
                                     <div className={`w-40 h-40 rounded-full relative ${gradientClass ? `p-1 ${gradientClass} shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'border-4 border-gray-800 bg-black shadow-2xl'}`}>
