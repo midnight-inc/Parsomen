@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+
 import { FaWindows, FaRocket, FaSync, FaShieldAlt } from 'react-icons/fa';
 import Button from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
@@ -84,17 +84,8 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="flex-1 w-full max-w-lg md:max-w-2xl flex items-center justify-center relative group">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/30 to-blue-600/30 blur-[60px] rounded-full -z-10 transition-all duration-700 group-hover:blur-[80px] group-hover:from-purple-600/40 group-hover:to-blue-600/40" />
-                    <Image
-                        src="/app-hero-mockup-new.png"
-                        alt="Parşomen Masaüstü Uygulaması"
-                        width={800}
-                        height={600}
-                        className="w-full h-auto drop-shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-1000"
-                        priority
-                    />
-                </div>
+                {/* Image section removed as requested */}
+                <div className="flex-1 hidden md:block"></div>
 
             </div>
         </div>
