@@ -162,7 +162,7 @@ export default async function EditorChoicePage() {
                         <span className="text-gray-500 text-sm">En yüksek puanlılar</span>
                     </div>
                     {risingStars.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-6">
                             {risingStars.map(book => (
                                 <Link key={book.id} href={`/books/${book.id}`} className="group">
                                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 shadow-lg group-hover:shadow-xl transition-shadow">
@@ -192,7 +192,7 @@ export default async function EditorChoicePage() {
                         <h2 className="text-2xl font-bold">Kitap vs Film</h2>
                         <span className="text-gray-500 text-sm">Ünlü Uyarlamalar</span>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-4">
                         {filmBooks.map(book => {
                             // Check for hardcoded film title or fallback
                             const knownAdaptations = {

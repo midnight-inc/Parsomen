@@ -85,6 +85,17 @@ export async function POST(req) {
             prisma.user.update({
                 where: { id: receiverId },
                 data: { points: { increment: points } }
+            }),
+            // Create notification
+            prisma.notification.create({
+                data: {
+                    userId: receiverId,
+                    type: 'GIFT',
+                    title: 'Hediye Geldi!',
+                    message: `${sender.username} sana ${points} puan ve bir hediye kartı gönderdi!`,
+                    link: '/store/gift-list', // Check received gifts here
+                    fromUserId: senderId
+                }
             })
         ]);
 

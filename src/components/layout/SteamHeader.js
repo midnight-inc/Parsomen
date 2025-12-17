@@ -49,11 +49,11 @@ const NAV_MENUS = (username) => {
         },
         'KÜTÜPHANE': {
             href: '/library',
-            items: ['Anasayfa', 'Koleksiyonlar', 'İndirmeler']
+            items: ['Anasayfa', 'Koleksiyonlar']
         },
         'TOPLULUK': {
             href: '/community',
-            items: ['Anasayfa', 'Tartışmalar', 'Sıralamalar']
+            items: ['Anasayfa', 'Tartışmalar', 'Sıralamalar', 'Destek']
         }
     };
 
@@ -220,6 +220,7 @@ export default function SteamHeader() {
                                                             'Tartışmalar': '/community/discussions',
                                                             'Koleksiyonlar': '/library/collections',
                                                             'İndirmeler': '/downloads',
+                                                            'Destek': '/support',
                                                             'Anasayfa': data.href
                                                         };
                                                         if (map[item]) return map[item];

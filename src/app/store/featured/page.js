@@ -160,7 +160,7 @@ export default async function FeaturedPage() {
                             <p className="text-gray-500">Topluluğun elinden düşürmediği eserler</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-6">
                         {popularBooks.map((book, idx) => (
                             <Link key={book.id} href={`/books/${book.id}`} className="group relative">
                                 <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-white text-black font-black flex items-center justify-center shadow-lg border-2 border-orange-500 z-10">

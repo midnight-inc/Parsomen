@@ -38,6 +38,18 @@ export async function POST(request) {
             }
         });
 
+        // Create notification for target user
+        await prisma.notification.create({
+            data: {
+                userId: targetUserId,
+                type: 'FRIEND_REQUEST',
+                title: 'Arkadaşlık İsteği',
+                message: `${session.user.username} sana arkadaşlık isteği gönderdi.`,
+                link: '/friends', // Redirect to friends page to accept
+                fromUserId: userId
+            }
+        });
+
         return NextResponse.json({ success: true });
 
     } catch (error) {
