@@ -2,15 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
     const session = await getSession();
     if (!session || session.user.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        const { id } = params;
+        const { id } = await context.params;
         const { amount } = await request.json();
+
+        console.log(`Admin ${session.user.username} updating points for user ${id}. Amount: ${amount}`);
 
         // Validate amount
         const pointsToAdd = parseInt(amount);
@@ -55,6 +57,6 @@ export async function PUT(request, { params }) {
 
     } catch (error) {
         console.error('Point update error:', error);
-        return NextResponse.json({ error: 'Puan güncelleme başarısız' }, { status: 500 });
+        return NextResponse.json({ error: 'Puan güncelleme başarısız: ' + error.message }, { status: 500 });
     }
 }
