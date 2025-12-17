@@ -33,7 +33,8 @@ export async function GET(req) {
             pageColor: '#ffffff',
             fontFamily: 'default',
             fontSize: 100,
-            darkMode: true
+            darkMode: true,
+            textColor: '#000000'
         });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to get progress' }, { status: 500 });
@@ -84,7 +85,8 @@ export async function POST(req) {
                 pageColor: pageColor || '#ffffff',
                 fontFamily: fontFamily || 'default',
                 fontSize: fontSize || 100,
-                darkMode: darkMode !== undefined ? darkMode : true
+                darkMode: darkMode !== undefined ? darkMode : true,
+                textColor: textColor || '#000000'
             },
             create: {
                 userId: session.user.id,
@@ -97,7 +99,8 @@ export async function POST(req) {
                 pageColor: pageColor || '#ffffff',
                 fontFamily: fontFamily || 'default',
                 fontSize: fontSize || 100,
-                darkMode: darkMode !== undefined ? darkMode : true
+                darkMode: darkMode !== undefined ? darkMode : true,
+                textColor: textColor || '#000000'
             }
         });
 

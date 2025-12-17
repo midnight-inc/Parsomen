@@ -79,7 +79,7 @@ export default function SupportDashboard() {
                             </div>
                             <div className="font-bold text-white mb-1 truncate">{ticket.subject}</div>
                             <div className="text-xs text-gray-400 flex items-center gap-2">
-                                <FaUser className="text-[10px]" /> {ticket.user.username}
+                                <FaUser className="text-[10px]" /> {ticket.user?.username}
                             </div>
                         </div>
                     ))}
@@ -95,7 +95,7 @@ export default function SupportDashboard() {
                             <div>
                                 <h2 className="text-lg font-bold text-white">{selectedTicket.subject}</h2>
                                 <div className="text-xs text-gray-400">
-                                    Talep No: #{selectedTicket.id} &bull; Gönderen: {selectedTicket.user.username}
+                                    Talep No: #{selectedTicket.id} &bull; Gönderen: {selectedTicket.user?.username || 'Bilinmeyen'}
                                 </div>
                             </div>
                             {/* Future: Close Ticket Button */}
@@ -106,10 +106,10 @@ export default function SupportDashboard() {
                             {/* Original Message */}
                             <div className="flex gap-4">
                                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                                    {selectedTicket.user.username[0].toUpperCase()}
+                                    {selectedTicket.user?.username?.[0]?.toUpperCase()}
                                 </div>
                                 <div className="bg-gray-800 p-4 rounded-r-xl rounded-bl-xl max-w-[80%]">
-                                    <div className="text-xs text-blue-400 font-bold mb-1">{selectedTicket.user.username}</div>
+                                    <div className="text-xs text-blue-400 font-bold mb-1">{selectedTicket.user?.username}</div>
                                     <div className="text-gray-300 text-sm whitespace-pre-wrap">{selectedTicket.message}</div>
                                     <div className="text-[10px] text-gray-500 mt-2 text-right">{new Date(selectedTicket.createdAt).toLocaleString()}</div>
                                 </div>

@@ -68,6 +68,7 @@ export default async function BookDetail(props) {
                                 fill
                                 sizes="350px"
                                 priority
+                                unoptimized
                                 className="object-cover"
                             />
                         ) : (

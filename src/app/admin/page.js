@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { FaBookOpen, FaTags, FaUsers, FaComments, FaMedal } from 'react-icons/fa';
 
 export default async function AdminDashboard() {
@@ -62,7 +63,7 @@ function Card({ title, value, icon, color, href }) {
    );
 
    if (href) {
-      return <a href={href}>{Content}</a>; // Using simple anchor for admin to force refresh if needed, or Link
+      return <Link href={href}>{Content}</Link>;
       // Better use Link
    }
 

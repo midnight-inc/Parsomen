@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request) {
     // These should be in environment variables ideally
     // User needs to provide their GitHub username/org
     const GITHUB_USER = 'midnight-inc'; // Updated per user request
@@ -27,14 +27,31 @@ export async function GET() {
 
         const data = await response.json();
 
-        // Find the .exe asset
-        const asset = data.assets.find(a => a.name.endsWith('.exe'));
+        // Check User Agent
+        const userAgent = request.headers.get('user-agent') || '';
+        const isAndroid = /android/i.test(userAgent);
+
+        let asset;
+
+        if (isAndroid) {
+            // Find .apk for Android
+            asset = data.assets.find(a => a.name.endsWith('.apk'));
+            if (!asset) {
+                return NextResponse.json({ error: 'Android version (APK) not found in latest release' }, { status: 404 });
+            }
+        } else {
+            // Default to .exe for Windows/Desktop
+            asset = data.assets.find(a => a.name.endsWith('.exe'));
+            if (!asset) {
+                return NextResponse.json({ error: 'Windows installer (.exe) not found in latest release' }, { status: 404 });
+            }
+        }
 
         if (asset && asset.browser_download_url) {
             // Redirect to the download URL
             return NextResponse.redirect(asset.browser_download_url);
         } else {
-            return NextResponse.json({ error: 'No .exe asset found in latest release' }, { status: 404 });
+            return NextResponse.json({ error: 'Asset found but no download URL' }, { status: 404 });
         }
 
     } catch (error) {

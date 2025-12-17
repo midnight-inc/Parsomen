@@ -33,7 +33,7 @@ export default function AdminShopPage() {
             const res = await fetch('/api/admin/shop');
             const data = await res.json();
             if (data.success) {
-                setItems(data.items);
+                setItems(data.items || []);
             }
         } catch (error) {
             console.error('Failed to fetch items:', error);
@@ -267,7 +267,13 @@ export default function AdminShopPage() {
                     <tbody className="divide-y divide-gray-800">
                         {items.map(item => (
                             <tr key={item.id} className="hover:bg-gray-800/50">
-                                <td className="p-4 text-3xl">{item.image}</td>
+                                <td className="p-4 text-3xl">
+                                    {(item.image?.startsWith('http') || item.image?.startsWith('/')) ? (
+                                        <img src={item.image} alt={item.name} className="w-8 h-8 object-cover rounded" />
+                                    ) : (
+                                        item.image
+                                    )}
+                                </td>
                                 <td className="p-4 text-white font-bold">{item.name}</td>
                                 <td className="p-4">{item.type}</td>
                                 <td className="p-4 text-yellow-500 font-bold">{item.price}</td>

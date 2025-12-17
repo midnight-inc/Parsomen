@@ -2,11 +2,14 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
 // JWT Secret - MUST be set in environment variables for production
-const secretKey = process.env.JWT_SECRET || "development-only-secret-change-in-production";
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-    console.error('CRITICAL SECURITY WARNING: JWT_SECRET environment variable is not set!');
+const secretKey = process.env.JWT_SECRET;
+if (!secretKey) {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('FATAL: JWT_SECRET environment variable is required in production!');
+    }
+    console.warn('⚠️ WARNING: Using development JWT secret. Set JWT_SECRET in production!');
 }
-const key = new TextEncoder().encode(secretKey);
+const key = new TextEncoder().encode(secretKey || 'dev-secret-do-not-use-in-prod');
 
 // Cookie security options
 const getCookieOptions = (expires) => ({

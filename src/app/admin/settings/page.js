@@ -65,17 +65,17 @@ export default function AdminSettingsPage() {
                     <div>
                         <h3 className="text-white font-bold flex items-center gap-2">
                             Bakım Modu
-                            {settings.maintenance_mode === 'true' && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded animate-pulse">AKTİF</span>}
+                            {String(settings.maintenance_mode) === 'true' && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded animate-pulse">AKTİF</span>}
                         </h3>
                         <p className="text-gray-500 text-sm mt-1">
                             Siteyi bakıma al. Sadece adminler siteye erişebilir.
                         </p>
                     </div>
                     <button
-                        onClick={() => setSettings(s => ({ ...s, maintenance_mode: s.maintenance_mode === 'true' ? 'false' : 'true' }))}
-                        className={`text-4xl transition-colors ${settings.maintenance_mode === 'true' ? 'text-green-500' : 'text-gray-600'}`}
+                        onClick={() => setSettings(s => ({ ...s, maintenance_mode: String(s.maintenance_mode) === 'true' ? 'false' : 'true' }))}
+                        className={`text-4xl transition-colors ${String(settings.maintenance_mode) === 'true' ? 'text-green-500' : 'text-gray-600'}`}
                     >
-                        {settings.maintenance_mode === 'true' ? <FaToggleOn /> : <FaToggleOff />}
+                        {String(settings.maintenance_mode) === 'true' ? <FaToggleOn /> : <FaToggleOff />}
                     </button>
                 </div>
 

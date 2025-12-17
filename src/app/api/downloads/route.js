@@ -1,19 +1,27 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 
 export async function POST(request) {
+    // SECURITY: Use session instead of client-provided userId
+    const session = await getSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const json = await request.json();
-        const { bookId, userId } = json;
+        const { bookId } = json;
+        const userId = session.user.id; // Use session userId, not client-provided
 
-        if (!userId || !bookId) {
-            return NextResponse.json({ error: 'Eksik bilgi.' }, { status: 400 });
+        if (!bookId) {
+            return NextResponse.json({ error: 'Kitap ID gerekli.' }, { status: 400 });
         }
 
         // Check if already downloaded
         const existing = await prisma.userDownload.findFirst({
             where: {
-                userId: parseInt(userId),
+                userId: userId,
                 bookId: parseInt(bookId)
             }
         });
@@ -25,7 +33,7 @@ export async function POST(request) {
 
         const download = await prisma.userDownload.create({
             data: {
-                userId: parseInt(userId),
+                userId: userId,
                 bookId: parseInt(bookId)
             }
         });

@@ -365,7 +365,7 @@ export default function ReviewSection({ bookId }) {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6 flex-wrap">
                 <div className="flex items-center gap-2 text-gray-400">
                     <FaFilter className="text-sm" />
                     <span className="text-sm font-bold">Sırala:</span>

@@ -30,6 +30,11 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL('/store', request.url));
     }
 
+    // 4. Protect Admin Routes (Role Based Access Control)
+    if (pathname.startsWith('/admin') && session?.user?.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-pathname', pathname);
     requestHeaders.set('x-query', request.nextUrl.searchParams.toString());

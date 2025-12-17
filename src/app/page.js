@@ -84,12 +84,16 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Mockup Image Placeholder
-                    Recommended Size: 800x600px
-                    Ratio: 4:3
-                */}
-                <div className="flex-1 w-full max-w-lg md:max-w-2xl flex items-center justify-center">
-                    {/* Buraya daha sonra görsel eklenecek */}
+                <div className="flex-1 w-full max-w-lg md:max-w-2xl flex items-center justify-center relative group">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/30 to-blue-600/30 blur-[60px] rounded-full -z-10 transition-all duration-700 group-hover:blur-[80px] group-hover:from-purple-600/40 group-hover:to-blue-600/40" />
+                    <Image
+                        src="/app-hero-mockup-new.png"
+                        alt="Parşomen Masaüstü Uygulaması"
+                        width={800}
+                        height={600}
+                        className="w-full h-auto drop-shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-1000"
+                        priority
+                    />
                 </div>
 
             </div>

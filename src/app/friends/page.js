@@ -255,10 +255,12 @@ export default function FriendsPage() {
                             </div>
                         </div>
                     )) : (
-                        <div className="col-span-full text-center py-12 bg-gray-900/50 rounded-2xl border border-gray-800">
-                            <FaUserFriends className="text-4xl text-gray-700 mx-auto mb-4" />
-                            <p className="text-gray-500">Henüz arkadaşınız yok</p>
-                            <p className="text-sm text-gray-600 mt-2">Yukarıdan arkadaş ekleyin!</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-20 bg-gray-900/30 rounded-3xl border border-gray-800 text-center animate-in fade-in zoom-in duration-500">
+                            <div className="w-24 h-24 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
+                                <FaUserFriends className="text-5xl text-gray-700" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">Yalnız Kovboy?</h3>
+                            <p className="text-gray-400 mb-6">Henüz hiç arkadaşın yok. Yukarıdan kullanıcı adı aratarak arkadaşlarını bul!</p>
                         </div>
                     )}
                 </div>
@@ -286,8 +288,8 @@ export default function FriendsPage() {
                             </div>
                         </div>
                     )) : (
-                        <div className="text-center py-12 bg-gray-900/50 rounded-2xl border border-gray-800">
-                            <p className="text-gray-500">Bekleyen istek yok</p>
+                        <div className="text-center py-12 bg-gray-900/30 rounded-2xl border border-dashed border-gray-800">
+                            <p className="text-gray-500">Henüz bekleyen istek yok.</p>
                         </div>
                     )}
                 </div>
@@ -310,8 +312,8 @@ export default function FriendsPage() {
                             </div>
                         </div>
                     )) : (
-                        <div className="text-center py-12 bg-gray-900/50 rounded-2xl border border-gray-800">
-                            <p className="text-gray-500">Gönderilen istek yok</p>
+                        <div className="text-center py-12 bg-gray-900/30 rounded-2xl border border-dashed border-gray-800">
+                            <p className="text-gray-500">Henüz gönderilen istek yok.</p>
                         </div>
                     )}
                 </div>

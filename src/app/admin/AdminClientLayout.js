@@ -2,7 +2,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaChartBar, FaUsers, FaTags, FaMedal, FaCog, FaHome, FaCheckCircle, FaBook, FaGem } from 'react-icons/fa';
+import { FaChartBar, FaUsers, FaTags, FaMedal, FaCog, FaHome, FaCheckCircle, FaBook, FaGem, FaImages, FaStar } from 'react-icons/fa';
 import { useEffect } from 'react';
 
 export default function AdminClientLayout({ children }) {
@@ -26,6 +26,8 @@ export default function AdminClientLayout({ children }) {
         { icon: <FaMedal />, label: 'Rozetler', href: '/admin/badges' },
         { icon: <FaUsers />, label: 'Kullanıcılar', href: '/admin/users' },
         { icon: <FaGem />, label: 'Puan Dükkanı', href: '/admin/shop' },
+        { icon: <FaStar />, label: 'Vitrin', href: '/admin/showcase' },
+        { icon: <FaImages />, label: 'Medya', href: '/admin/media' },
         { icon: <FaCheckCircle />, label: 'Destek', href: '/admin/support' },
         { icon: <FaCog />, label: 'Ayarlar', href: '/admin/settings' },
     ];

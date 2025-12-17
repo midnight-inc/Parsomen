@@ -88,6 +88,11 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 
+        // SECURITY: Limit review text length
+        if (text.length > 10000) {
+            return NextResponse.json({ error: 'Review too long (max 10000 chars)' }, { status: 400 });
+        }
+
         // If it's a reply, don't require rating
         const isReply = !!parentId;
 

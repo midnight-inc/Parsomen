@@ -69,6 +69,20 @@ export async function POST(request) {
 
         const json = await request.json();
 
+        // 3. Duplicate Check
+        const existingBook = await prisma.book.findFirst({
+            where: {
+                title: { equals: json.title, mode: 'insensitive' }
+            }
+        });
+
+        if (existingBook) {
+            return NextResponse.json({
+                success: false,
+                error: 'Bu kitap zaten veritabanında mevcut!'
+            }, { status: 409 });
+        }
+
         // 3. Input Validation
         if (!json.title || !json.author) {
             return NextResponse.json({

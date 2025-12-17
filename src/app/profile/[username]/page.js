@@ -5,6 +5,7 @@ import { FaEdit, FaBookOpen, FaClock, FaBook, FaCheckCircle, FaSpinner, FaSave, 
 import { IconRenderer } from '@/components/ui/IconHelper';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
+import ReadingGoalCard from '@/components/gamification/ReadingGoalCard';
 
 export default function PublicProfilePage() {
     const params = useParams();
@@ -401,6 +402,11 @@ export default function PublicProfilePage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Reading Goal (Only for Owner) */}
+                            {isOwnProfile && (
+                                <ReadingGoalCard />
+                            )}
 
                             <div className="bg-gray-900/30 p-6 rounded-xl border border-gray-800 space-y-4">
                                 <h3 className="text-white font-bold text-sm mb-2 opacity-50">İSTATİSTİKLER</h3>

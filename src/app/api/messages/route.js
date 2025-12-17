@@ -73,6 +73,11 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Rate limiting
+    const { checkRateLimit } = await import('@/lib/rateLimit');
+    const rateLimitError = await checkRateLimit(req, 'interaction');
+    if (rateLimitError) return rateLimitError;
+
     try {
         const { receiverId, content, mediaType, mediaUrl } = await req.json();
         const senderId = session.user.id;

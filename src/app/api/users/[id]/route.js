@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 // PUT: Update Role
 export async function PUT(request, { params }) {
@@ -13,7 +11,13 @@ export async function PUT(request, { params }) {
         }
 
         const { id } = await params;
-        const { role } = await request.json(); // 'ADMIN' or 'USER'
+        const { role } = await request.json();
+
+        // SECURITY: Validate role value
+        const validRoles = ['ADMIN', 'USER'];
+        if (!role || !validRoles.includes(role)) {
+            return NextResponse.json({ success: false, message: 'Invalid role. Must be ADMIN or USER.' }, { status: 400 });
+        }
 
         const updatedUser = await prisma.user.update({
             where: { id: parseInt(id) },

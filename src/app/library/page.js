@@ -25,9 +25,22 @@ export default async function LibraryPage() {
             <h1 className="text-3xl font-bold text-white mb-8 border-l-4 border-pink-500 pl-4">Kütüphanem</h1>
 
             {libraryItems.length === 0 ? (
-                <div className="text-center py-20 bg-gray-900/50 rounded-xl border border-gray-800 text-gray-400">
-                    <p className="text-xl mb-4">Henüz kütüphanene kitap eklemedin.</p>
-                    <Link href="/store" className="text-pink-500 hover:text-white underline">Kitapları Keşfet</Link>
+                <div className="flex flex-col items-center justify-center py-20 bg-gray-900/30 rounded-3xl border border-gray-800 text-center animate-in fade-in zoom-in duration-500">
+                    <div className="w-32 h-32 bg-gray-800/50 rounded-full flex items-center justify-center mb-6 relative">
+                        <FaBookOpen className="text-6xl text-gray-700" />
+                        <div className="absolute top-0 right-0 p-2 bg-pink-500 rounded-full animate-bounce">
+                            <FaStar className="text-white text-xs" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Kütüphanen Henüz Boş</h2>
+                    <p className="text-gray-400 mb-8 max-w-sm">
+                        Henüz hiç kitap eklememişsin. Maceraya başlamak için mağazayı ziyaret et!
+                    </p>
+                    <Link href="/store">
+                        <button className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-pink-500/20 transition-all hover:scale-105">
+                            📚 Kitapları Keşfet
+                        </button>
+                    </Link>
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">

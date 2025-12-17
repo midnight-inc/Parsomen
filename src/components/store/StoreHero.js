@@ -86,18 +86,19 @@ export default function StoreHero() {
                         alt={book.title}
                         fill
                         className="object-cover opacity-40 blur-sm"
+                        unoptimized
                     />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent z-10" />
             </div>
 
             {/* Content */}
-            <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-16 max-w-3xl">
+            <div className="relative z-20 h-full flex flex-col justify-center px-4 md:px-16 max-w-3xl">
                 <span className="inline-block px-3 py-1 mb-4 text-xs font-bold tracking-wider text-yellow-400 uppercase border border-yellow-400/30 rounded-full bg-yellow-400/10 w-fit animate-pulse">
                     Günün Kitabı
                 </span>
 
-                <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight drop-shadow-lg">
+                <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight drop-shadow-lg line-clamp-2">
                     {book.title}
                 </h1>
 

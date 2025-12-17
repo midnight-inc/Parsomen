@@ -72,6 +72,10 @@ model User {
 
   // Live Activity
   activities      UserActivity[]
+  
+  // Gamification New
+  readingGoals    ReadingGoal[]
+  loginLogs       UserLoginLog[]
 }
 
 model UserActivity {
@@ -289,6 +293,31 @@ model Newsletter {
   recipientCount Int
 }
 
+model ReadingGoal {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  year        Int
+  target      Int      @default(0) // Number of books
+  current     Int      @default(0) // Books read so far
+  completed   Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, year])
+}
+
+model UserLoginLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  loginDate DateTime @default(now()) // Stored as Start of Day for easy uniqueness check
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, loginDate]) 
+  // Ensures only 1 record per day per user
+}
+
 model Ticket {
   id        Int      @id @default(autoincrement())
   subject   String
@@ -331,6 +360,7 @@ model ReadingProgress {
   fontFamily    String   @default("default")
   fontSize      Int      @default(100)
   darkMode      Boolean  @default(true)
+  textColor     String   @default("#000000")
   
   user          User     @relation(fields: [userId], references: [id])
   book          Book     @relation(fields: [bookId], references: [id])
