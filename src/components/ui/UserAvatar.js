@@ -23,34 +23,32 @@ export default function UserAvatar({ user, src, alt, size = 40, className = "" }
             return (
                 <div
                     className={`relative flex items-center justify-center ${className}`}
-                    style={{ width: dimension + 8, height: dimension + 8 }}
+                    style={{ width: dimension, height: dimension }}
                 >
-                    {/* The Frame Overlay */}
-                    <div className="absolute inset-0 z-20 pointer-events-none">
+                    {/* The Frame Overlay - Scaled up and pointer-events-none */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] z-20 pointer-events-none">
                         <Image
                             src={frameGradient}
                             alt="Frame"
                             fill
-                            className="object-contain scale-125" // Scale up slightly to sit outside avatar
+                            className="object-contain"
                         />
                     </div>
 
                     {/* The Avatar */}
-                    <div className="relative rounded-full overflow-hidden bg-black border-2 border-black z-10" style={{ width: dimension, height: dimension }}>
+                    <div className="relative w-full h-full rounded-full overflow-hidden bg-black z-10">
                         <Image
                             src={imageSrc}
                             alt={alt || user?.username || "User"}
-                            width={dimension}
-                            height={dimension}
-                            className="object-cover w-full h-full"
+                            fill
+                            className="object-cover"
                         />
                     </div>
                 </div>
             );
         }
 
-        // Case 2: CSS Gradient (Legacy/Simple frames)
-        // Ensure the string has 'bg-gradient-to-br' or similar if missing and looks like a tailwind color
+        // Case 2: CSS Gradient (Steam-like Animated Borders)
         const gradientClass = (frameGradient.includes('gradient') || frameGradient.includes('from-'))
             ? (frameGradient.includes('gradient') ? frameGradient : `bg-gradient-to-br ${frameGradient}`)
             : '';
@@ -58,17 +56,23 @@ export default function UserAvatar({ user, src, alt, size = 40, className = "" }
         if (gradientClass) {
             return (
                 <div
-                    className={`relative rounded-full flex items-center justify-center ${gradientClass} ${className} shadow-lg`}
-                    style={{ width: dimension + 8, height: dimension + 8 }} // 4px border all around
+                    className={`relative flex items-center justify-center ${className}`}
+                    style={{ width: dimension + 8, height: dimension + 8 }}
                 >
-                    <div className="rounded-full bg-black p-[2px] overflow-hidden" style={{ width: dimension, height: dimension }}>
-                        <Image
-                            src={imageSrc}
-                            alt={alt || user?.username || "User"}
-                            width={dimension}
-                            height={dimension}
-                            className="object-cover w-full h-full rounded-full"
-                        />
+                    {/* Animated Outer Glow/Border */}
+                    <div className={`absolute inset-0 rounded-full ${gradientClass} blur-sm opacity-50 animate-pulse`}></div>
+                    <div className={`absolute inset-0 rounded-full ${gradientClass} animate-spin-slow`}></div>
+
+                    {/* Inner Content */}
+                    <div className="relative w-full h-full rounded-full bg-black p-[3px] z-10">
+                        <div className="w-full h-full rounded-full overflow-hidden relative">
+                            <Image
+                                src={imageSrc}
+                                alt={alt || user?.username || "User"}
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
                     </div>
                 </div>
             );
