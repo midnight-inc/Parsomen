@@ -48,12 +48,16 @@
     ]
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "astral-regex": "^2.0.0",
     "canvas-confetti": "^1.9.4",
     "cheerio": "^1.1.2",
     "cloudinary": "^2.8.0",
     "emoji-picker-react": "^4.16.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.10.0",
     "@react-pdf-viewer/core": "^3.12.0",

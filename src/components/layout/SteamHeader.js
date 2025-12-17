@@ -249,12 +249,8 @@ export default function SteamHeader() {
                         </div>
                     </div>
 
-                    {/* Right User Area */}
-                    <div className="flex items-center gap-3 md:gap-6">
-                        {/* Mobile Search Icon Only */}
-                        <div className='md:hidden'>
-                            <FaSearch className="text-gray-400 text-lg" />
-                        </div>
+                    {/* Right User Area - Hidden on Mobile */}
+                    <div className="hidden lg:flex items-center gap-3 md:gap-6">
                         {/* Desktop Search */}
                         <div className='hidden md:block'>
                             <UniversalSearch />

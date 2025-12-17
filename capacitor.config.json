@@ -1,0 +1,9 @@
+{
+    "appId": "com.midnightio.parsomen",
+    "appName": "Parsomen",
+    "webDir": "public",
+    "server": {
+        "url": "https://parsomen.vercel.app",
+        "androidScheme": "https"
+    }
+}

@@ -83,9 +83,11 @@ export default function MainLayout({ children }) {
 
       <MobileNav />
 
-      <RefreshButton />
-      <BackButton />
-      <ScrollToTop />
+      <div className="hidden lg:block">
+        <RefreshButton />
+        <BackButton />
+        <ScrollToTop />
+      </div>
     </div>
   );
 }
