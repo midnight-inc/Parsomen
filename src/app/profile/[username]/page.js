@@ -216,12 +216,14 @@ export default function PublicProfilePage() {
 
                     <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
                         <div className="relative group shrink-0">
-                            <div className="w-40 h-40 rounded-full border-4 border-gray-800 p-1 bg-black shadow-2xl relative">
-                                <div className="w-full h-full rounded-full bg-gradient-to-b from-gray-700 to-gray-900 flex items-center justify-center overflow-hidden">
+                            <div className="w-40 h-40 rounded-full border-4 border-gray-800 bg-black shadow-2xl relative overflow-hidden">
+                                <div className="w-full h-full bg-gradient-to-b from-gray-700 to-gray-900">
                                     {(isEditing ? editForm.avatar : user.avatar) ? (
                                         <img src={isEditing ? editForm.avatar : user.avatar} className="w-full h-full object-cover" alt="avatar" />
                                     ) : (
-                                        <span className="text-6xl font-bold text-white/20">{profile.username.charAt(0).toUpperCase()}</span>
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <span className="text-6xl font-bold text-white/20">{profile.username.charAt(0).toUpperCase()}</span>
+                                        </div>
                                     )}
                                 </div>
 
