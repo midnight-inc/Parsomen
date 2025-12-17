@@ -12,7 +12,13 @@ export const revalidate = 0;
 
 export default async function StorePage(props) {
     try {
-        const searchParams = (await props.searchParams) || {};
+        let searchParams = {};
+        try {
+            searchParams = await props.searchParams;
+        } catch (e) {
+            console.error("Params Error", e);
+        }
+        searchParams = searchParams || {};
         const category = searchParams.category;
         const search = searchParams.search || '';
 

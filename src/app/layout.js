@@ -41,10 +41,35 @@ import { MaintenanceGuard } from '@/components/guards/MaintenanceGuard';
 
 // ...
 
-export default function RootLayout({ children }) {
+import ThemeWrapper from '@/components/providers/ThemeWrapper';
+import { prisma } from '@/lib/prisma'; // Ensure correct import path
+
+// Fetch theme settings properly
+async function getThemeSettings() {
+    try {
+        const settings = await prisma.systemSetting.findMany({
+            where: {
+                key: { in: ['theme_mode', 'theme_selected'] }
+            }
+        });
+
+        const mode = settings.find(s => s.key === 'theme_mode')?.value || 'AUTO';
+        const theme = settings.find(s => s.key === 'theme_selected')?.value || 'default';
+
+        return { mode, theme };
+    } catch (error) {
+        console.error("Theme fetch error:", error);
+        return { mode: 'AUTO', theme: 'default' };
+    }
+}
+
+export default async function RootLayout({ children }) {
+    const { mode, theme } = await getThemeSettings();
+
     return (
         <html lang="tr" suppressHydrationWarning>
             <body className={`${inter.variable} ${montserrat.variable} font-sans`} suppressHydrationWarning>
+                <ThemeWrapper initialMode={mode} initialTheme={theme} />
                 <QueryProvider>
                     <AuthProvider>
                         <UserBooksProvider>

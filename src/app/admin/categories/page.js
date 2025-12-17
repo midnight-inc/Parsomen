@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaCheck, FaTimes, FaCloudUpload, FaImage } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaCheck, FaTimes, FaCloudUploadAlt, FaImage } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { confirm } from '@/components/ui/ConfirmModal';
 
@@ -173,7 +173,7 @@ export default function CategoryManager() {
                             <div className="flex gap-2">
                                 <input className="flex-1 bg-black border border-gray-700 p-3 rounded text-white text-sm" placeholder="Resim URL..." value={newCat.image} onChange={e => setNewCat({ ...newCat, image: e.target.value })} />
                                 <label className="bg-gray-800 hover:bg-gray-700 text-white px-4 rounded flex items-center justify-center cursor-pointer transition-colors border border-gray-600">
-                                    {uploadingId === 'new' ? <span className="animate-spin">↻</span> : <FaCloudUpload />}
+                                    {uploadingId === 'new' ? <span className="animate-spin">↻</span> : <FaCloudUploadAlt />}
                                     <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'new', (url) => setNewCat({ ...newCat, image: url }))} />
                                 </label>
                             </div>
@@ -220,7 +220,7 @@ export default function CategoryManager() {
                                         setCategories(prev => prev.map(c => c.id === cat.id ? { ...c, image: e.target.value } : c));
                                     }} />
                                     <label className="bg-gray-700 hover:bg-gray-600 text-white px-2 rounded flex items-center justify-center cursor-pointer">
-                                        {uploadingId === cat.id ? <span className="animate-spin text-xs">↻</span> : <FaCloudUpload />}
+                                        {uploadingId === cat.id ? <span className="animate-spin text-xs">↻</span> : <FaCloudUploadAlt />}
                                         <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, cat.id, (url) => {
                                             setCategories(prev => prev.map(c => c.id === cat.id ? { ...c, image: url } : c));
                                         })} />

@@ -1,23 +1,12 @@
-export default function Skeleton({ className = "", variant = "rectangular", animation = "pulse" }) {
-    const baseClasses = "bg-gradient-to-r from-gray-800/50 via-gray-700/50 to-gray-800/50 bg-[length:200%_100%]";
-
-    const animationClasses = {
-        pulse: "animate-pulse",
-        wave: "animate-[wave_1.5s_ease-in-out_infinite]",
-        none: ""
-    };
-
-    const variantClasses = {
-        text: "h-4 rounded",
-        rectangular: "rounded-lg",
-        circular: "rounded-full",
-        card: "rounded-xl"
-    };
-
+export default function Skeleton({ className = "" }) {
     return (
         <div
-            className={`${baseClasses} ${variantClasses[variant] || variantClasses.rectangular} ${animationClasses[animation]} ${className}`}
-            aria-label="Loading..."
+            className={`bg-gray-800/50 rounded-lg animate-pulse ${className}`}
+            style={{
+                backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0))',
+                backgroundSize: '200% 100%',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, shimmer 2s infinite'
+            }}
         />
     );
 }

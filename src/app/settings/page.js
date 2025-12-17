@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { FaFont, FaPalette, FaCheck, FaLock, FaEnvelope, FaBoxOpen, FaImage, FaSave, FaSpinner, FaCrown } from 'react-icons/fa';
+import { FaFont, FaPalette, FaCheck, FaLock, FaEnvelope, FaBoxOpen, FaImage, FaSave, FaSpinner, FaCrown, FaHeart } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -26,6 +26,18 @@ export default function SettingsPage() {
     const [inventory, setInventory] = useState([]);
     const [equippedFrame, setEquippedFrame] = useState(null);
     const [equippedTheme, setEquippedTheme] = useState(null);
+    const [valentineStatus, setValentineStatus] = useState('auto'); // auto, true, false
+
+    useEffect(() => {
+        setValentineStatus(localStorage.getItem('theme_valentine_override') || 'auto');
+    }, []);
+
+    const toggleValentine = () => {
+        const nextStatus = valentineStatus === 'true' ? 'false' : 'true';
+        localStorage.setItem('theme_valentine_override', nextStatus);
+        setValentineStatus(nextStatus);
+        window.dispatchEvent(new Event('storage')); // Trigger MainLayout update
+    };
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -241,8 +253,8 @@ export default function SettingsPage() {
                                             key={font.id}
                                             onClick={() => setSelectedFont(font.id)}
                                             className={`w-full p-4 rounded-xl border flex justify-between items-center transition-all ${selectedFont === font.id
-                                                    ? 'bg-purple-500/20 border-purple-500/50 text-white'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
+                                                ? 'bg-purple-500/20 border-purple-500/50 text-white'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
                                                 }`}
                                         >
                                             <div>
@@ -270,10 +282,10 @@ export default function SettingsPage() {
                                             onClick={() => !theme.disabled && setSelectedTheme(theme.id)}
                                             disabled={theme.disabled}
                                             className={`w-full p-4 rounded-xl border flex justify-between items-center transition-all ${theme.disabled
-                                                    ? 'bg-white/5 border-white/5 text-gray-600 cursor-not-allowed opacity-50'
-                                                    : selectedTheme === theme.id
-                                                        ? 'bg-green-500/20 border-green-500/50 text-white'
-                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
+                                                ? 'bg-white/5 border-white/5 text-gray-600 cursor-not-allowed opacity-50'
+                                                : selectedTheme === theme.id
+                                                    ? 'bg-green-500/20 border-green-500/50 text-white'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
                                                 }`}
                                         >
                                             <div>
@@ -295,6 +307,28 @@ export default function SettingsPage() {
                             {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
                             Görünüm Ayarlarını Kaydet
                         </button>
+
+                        {/* Special Themes */}
+                        <div className="mt-8 border-t border-white/10 pt-6">
+                            <h3 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                                <FaHeart className="text-pink-500" /> Özel Modlar
+                            </h3>
+                            <div className="bg-gradient-to-r from-pink-900/20 to-transparent p-4 rounded-xl border border-pink-500/20 flex items-center justify-between">
+                                <div>
+                                    <h4 className="font-bold text-pink-400">Sevgililer Günü Teması</h4>
+                                    <p className="text-xs text-pink-300/60">Romantik bir atmosfer (14 Şubat'ta otomatik açılır)</p>
+                                </div>
+                                <button
+                                    onClick={toggleValentine}
+                                    className={`px-4 py-2 rounded-lg text-sm transition-colors border ${valentineStatus === 'true'
+                                            ? 'bg-pink-500 text-white border-pink-500'
+                                            : 'bg-pink-500/10 text-pink-300 border-pink-500/30 hover:bg-pink-500/20'
+                                        }`}
+                                >
+                                    {valentineStatus === 'true' ? 'Aktif' : 'Pasif'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -329,15 +363,15 @@ export default function SettingsPage() {
                                                     key={inv.id}
                                                     onClick={() => handleEquipItem(inv.item.id, 'FRAME')}
                                                     className={`p-4 rounded-xl border text-center transition-all ${inv.equipped
-                                                            ? 'bg-purple-500/20 border-purple-500/50'
-                                                            : 'bg-white/5 border-white/10 hover:border-white/20'
+                                                        ? 'bg-purple-500/20 border-purple-500/50'
+                                                        : 'bg-white/5 border-white/10 hover:border-white/20'
                                                         }`}
                                                 >
                                                     <span className="text-3xl block mb-2">
                                                         {inv.item.image?.startsWith('/') ? (
                                                             <img src={inv.item.image} alt="" className="w-12 h-12 object-contain mx-auto" />
                                                         ) : (
-                                                            inv.item.image || '🖼️'
+                                                            inv.item.image || <FaImage className="mx-auto" />
                                                         )}
                                                     </span>
                                                     <p className="text-xs text-white truncate">{inv.item.name}</p>
@@ -360,8 +394,8 @@ export default function SettingsPage() {
                                                     key={inv.id}
                                                     onClick={() => handleEquipItem(inv.item.id, 'THEME')}
                                                     className={`p-4 rounded-xl border text-center transition-all ${inv.equipped
-                                                            ? 'bg-amber-500/20 border-amber-500/50'
-                                                            : 'bg-white/5 border-white/10 hover:border-white/20'
+                                                        ? 'bg-amber-500/20 border-amber-500/50'
+                                                        : 'bg-white/5 border-white/10 hover:border-white/20'
                                                         }`}
                                                 >
                                                     <span className="text-3xl block mb-2">

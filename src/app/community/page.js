@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { FaUsers, FaComments, FaBook, FaFire, FaTrophy, FaStar, FaChartLine, FaNewspaper, FaUserFriends, FaHeart, FaArrowRight } from 'react-icons/fa';
+import { FaUsers, FaComments, FaBook, FaFire, FaTrophy, FaStar, FaChartLine, FaNewspaper, FaUserFriends, FaHeart, FaArrowRight, FaClock } from 'react-icons/fa';
 
 export default function CommunityPage() {
     const { user } = useAuth();
     const [stats, setStats] = useState({ users: 0, books: 0, reviews: 0 });
     const [topUsers, setTopUsers] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -25,6 +26,13 @@ export default function CommunityPage() {
 
             // Fetch basic stats (could add a dedicated API later)
             // For now use leaderboard data
+
+            // Fetch Events
+            const eventsRes = await fetch('/api/community/events');
+            const eventsData = await eventsRes.json();
+            if (eventsData.success) {
+                setEvents(eventsData.events || []);
+            }
         } catch (error) {
             console.error('Failed to fetch community data:', error);
         } finally {
@@ -86,60 +94,51 @@ export default function CommunityPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column - Info */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Features Info */}
-                    <div className="relative overflow-hidden rounded-2xl">
-                        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10"></div>
-                        <div className="relative p-6">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
-                                <FaFire className="text-orange-400" /> Topluluk Özellikleri
-                            </h2>
+                    {/* Dynamic Events Section */}
+                    <div className="space-y-6">
+                        <div className="relative overflow-hidden rounded-2xl">
+                            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10"></div>
+                            <div className="relative p-6">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
+                                    <FaFire className="text-orange-400" /> Etkinlikler & Yarışmalar
+                                </h2>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                                    <FaNewspaper className="text-2xl text-blue-400 mb-3" />
-                                    <h3 className="font-bold text-white mb-1">Sosyal Akış</h3>
-                                    <p className="text-sm text-gray-500">Arkadaşlarının paylaşımlarını ve aktivitelerini takip et</p>
+                                <div className="space-y-4">
+                                    {/* Fetch events component or server-side logic would be better here, 
+                                       but since this is client component, we'll need to fetch in useEffect or convert to server component.
+                                       The original file is 'use client'. I will add fetch logic to the existing useEffect.
+                                   */}
+                                    {events.length > 0 ? (
+                                        events.map((event) => (
+                                            <div key={event.id} className="group relative overflow-hidden rounded-xl bg-black/40 border border-white/10 hover:border-purple-500/50 transition-all">
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 h-full">
+                                                    <div className="relative h-40 sm:h-auto">
+                                                        <img src={event.image} alt={event.title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                                        <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md">
+                                                            {event.type}
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-span-2 p-5 flex flex-col justify-center">
+                                                        <h3 className="text-lg font-bold text-white mb-2">{event.title}</h3>
+                                                        <p className="text-gray-400 text-sm mb-4 line-clamp-2">{event.description}</p>
+                                                        <div className="flex items-center justify-between mt-auto">
+                                                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                                                                <FaClock /> Bitiş: {new Date(event.endDate).toLocaleDateString()}
+                                                            </span>
+                                                            <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors">
+                                                                Katıl
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-10 text-gray-500">
+                                            Aktif etkinlik bulunmuyor.
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                                    <FaUserFriends className="text-2xl text-green-400 mb-3" />
-                                    <h3 className="font-bold text-white mb-1">Arkadaşlık</h3>
-                                    <p className="text-sm text-gray-500">Diğer okurlarla arkadaş ol ve etkileşime geç</p>
-                                </div>
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                                    <FaStar className="text-2xl text-amber-400 mb-3" />
-                                    <h3 className="font-bold text-white mb-1">İncelemeler</h3>
-                                    <p className="text-sm text-gray-500">Kitaplar hakkında yorum yap ve puanla</p>
-                                </div>
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                                    <FaTrophy className="text-2xl text-purple-400 mb-3" />
-                                    <h3 className="font-bold text-white mb-1">Rozetler</h3>
-                                    <p className="text-sm text-gray-500">Aktivitelerinle rozet kazan ve koleksiyonunu büyüt</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Coming Soon */}
-                    <div className="relative overflow-hidden rounded-2xl">
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-blue-900/20"></div>
-                        <div className="absolute inset-0 backdrop-blur-sm border border-purple-500/20 rounded-2xl"></div>
-                        <div className="relative p-6">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-                                🚧 Yakında Gelecek Özellikler
-                            </h2>
-                            <div className="space-y-3 text-gray-400">
-                                <p className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                                    Tartışma Forumları
-                                </p>
-                                <p className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                    Okuma Grupları
-                                </p>
-                                <p className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                    Okuma Etkinlikleri & Yarışmalar
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -170,9 +169,9 @@ export default function CommunityPage() {
                                             className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
                                         >
                                             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                                    index === 1 ? 'bg-gray-400/20 text-gray-300 border border-gray-400/30' :
-                                                        index === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-600/30' :
-                                                            'bg-white/5 text-gray-500 border border-white/10'
+                                                index === 1 ? 'bg-gray-400/20 text-gray-300 border border-gray-400/30' :
+                                                    index === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-600/30' :
+                                                        'bg-white/5 text-gray-500 border border-white/10'
                                                 }`}>
                                                 {index + 1}
                                             </span>

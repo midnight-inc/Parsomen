@@ -21,10 +21,8 @@ export async function GET(req) {
             where: {
                 userId: session.user.id,
                 status: 'READ',
-                // Ideally check if read in this year, but LibraryEntry tracks 'addedAt', 
-                // ReadingProgress tracks 'lastReadAt'. For MVP we just count total READ 
-                // or if we want stricter, we need a 'completedAt' field.
-                // For now, let's trust the 'current' field in ReadingGoal which we update manually or via hook.
+                status: 'READ',
+                // For MVP, we count total READ books. Ideally we need 'finishedAt' field.
             }
         });
 

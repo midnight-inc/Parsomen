@@ -37,6 +37,7 @@ export default function DiscoveryQueue() {
         try {
             setLoading(true);
             const res = await fetch('/api/store/discovery');
+            if (!res.ok) throw new Error('API Error');
             const data = await res.json();
             if (data.success) {
                 setQueue(data.queue);
@@ -169,7 +170,7 @@ export default function DiscoveryQueue() {
                         Listeyi Yenile
                     </button>
                     <button className="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium transition-colors shadow-lg shadow-purple-900/20">
-                        Mağazaya Dön
+                        Kitaplığa Dön
                     </button>
                 </div>
             </div>

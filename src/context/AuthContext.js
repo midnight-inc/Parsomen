@@ -34,9 +34,44 @@ export function AuthProvider({ children }) {
         await loadUser();
     };
 
+    // Gamification: Track level changes
+    const [previousLevel, setPreviousLevel] = useState(null);
+
+    useEffect(() => {
+        if (user && user.level) {
+            // Initial load
+            if (previousLevel === null) {
+                setPreviousLevel(user.level);
+            } else if (user.level > previousLevel) {
+                // LEVEL UP!
+                import('@/components/ui/Confetti').then(({ triggerSchoolPride }) => {
+                    triggerSchoolPride();
+                    // Play sound if possible (or just rely on visual)
+                    // const audio = new Audio('/sounds/levelup.mp3');
+                    // audio.play().catch(e => console.log('Audio play failed', e));
+                });
+
+                import('react-hot-toast').then(({ toast }) => {
+                    toast.success(`Tebrikler! Seviye ${user.level} oldun! 🎉`, {
+                        duration: 5000,
+                        icon: '🆙',
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff',
+                        },
+                    });
+                });
+
+                setPreviousLevel(user.level);
+            }
+        }
+    }, [user, previousLevel]);
+
     const logout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
         setUser(null);
+        setPreviousLevel(null); // Reset level tracking
         router.push('/login');
         router.refresh();
     };

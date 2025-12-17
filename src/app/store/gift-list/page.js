@@ -2,17 +2,17 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { FaHeart, FaGift, FaEnvelope, FaUsers, FaTrophy, FaBookOpen, FaSpinner, FaGem, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaHeart, FaGift, FaEnvelope, FaUsers, FaTrophy, FaBookOpen, FaSpinner, FaGem, FaTimes, FaCheck, FaBirthdayCake, FaHandHoldingHeart, FaCommentDots, FaGlassCheers } from 'react-icons/fa';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 // Gift card types with point costs
 const giftCardTypes = [
-    { id: 'birthday', name: 'Doğum Günün Kutlu Olsun', emoji: '🎂', gradient: 'from-pink-600 to-rose-500', minPoints: 50 },
-    { id: 'thanks', name: 'Teşekkürler', emoji: '🙏', gradient: 'from-green-600 to-teal-500', minPoints: 25 },
-    { id: 'thinking', name: 'Seni Düşünüyorum', emoji: '💭', gradient: 'from-purple-600 to-indigo-500', minPoints: 25 },
-    { id: 'congrats', name: 'Tebrikler!', emoji: '🎉', gradient: 'from-yellow-500 to-orange-500', minPoints: 50 },
+    { id: 'birthday', name: 'Doğum Günün Kutlu Olsun', icon: <FaBirthdayCake />, gradient: 'from-pink-600 to-rose-500', minPoints: 50 },
+    { id: 'thanks', name: 'Teşekkürler', icon: <FaHandHoldingHeart />, gradient: 'from-green-600 to-teal-500', minPoints: 25 },
+    { id: 'thinking', name: 'Seni Düşünüyorum', icon: <FaCommentDots />, gradient: 'from-purple-600 to-indigo-500', minPoints: 25 },
+    { id: 'congrats', name: 'Tebrikler!', icon: <FaGlassCheers />, gradient: 'from-yellow-500 to-orange-500', minPoints: 50 },
 ];
 
 export default function GiftListPage() {
@@ -194,7 +194,7 @@ export default function GiftListPage() {
                         {/* Select Card Type */}
                         {selectedCard && (
                             <div className={`mb-6 p-4 rounded-xl bg-gradient-to-br ${selectedCard.gradient} text-center`}>
-                                <span className="text-4xl">{selectedCard.emoji}</span>
+                                <span className="text-4xl">{selectedCard.icon}</span>
                                 <p className="font-bold text-white mt-2">{selectedCard.name}</p>
                             </div>
                         )}

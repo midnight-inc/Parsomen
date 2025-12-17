@@ -23,21 +23,21 @@ export async function PUT(request, context) {
     try {
         const { id } = await context.params;
         const bookId = parseInt(id);
-        const json = await request.json();
+        const { title, author, category, pages, year, description, cover, visibility } = await request.json();
 
-        console.log('Updating book:', bookId, json);
+        console.log('Updating book:', bookId, { title, author, category, pages, year, description, cover, visibility });
 
         // Handle category - find or create
         let categoryId = null;
-        if (json.category) {
-            const category = await prisma.category.findUnique({
-                where: { name: json.category }
+        if (category) {
+            const existingCategory = await prisma.category.findUnique({
+                where: { name: category }
             });
-            if (category) {
-                categoryId = category.id;
+            if (existingCategory) {
+                categoryId = existingCategory.id;
             } else {
                 const newCat = await prisma.category.create({
-                    data: { name: json.category }
+                    data: { name: category }
                 });
                 categoryId = newCat.id;
             }

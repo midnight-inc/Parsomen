@@ -5,8 +5,9 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useUserBooks } from '@/context/UserBooksContext';
 import Button from '../ui/Button';
+import { triggerConfetti } from '@/components/ui/Confetti';
 
-export default function BookActions({ bookId, pdfUrl, userId: propUserId }) {
+export default function BookActions({ bookId, userId: propUserId }) {
     const { user } = useAuth();
     const userId = propUserId || user?.id; // Get user ID from props or context
 
@@ -45,42 +46,9 @@ export default function BookActions({ bookId, pdfUrl, userId: propUserId }) {
         } catch (e) { }
     };
 
-    const handleRead = () => {
-        window.location.href = `/read/${bookId}`;
-    };
 
-    const handleDownload = async () => {
-        if (!pdfUrl) {
-            toast.error('PDF bulunamadı');
-            return;
-        }
 
-        setLoading(true);
-        toast.loading('İndirme başlatılıyor...', { id: 'dl' });
 
-        try {
-            // Record download
-            await fetch('/api/downloads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bookId, userId })
-            });
-
-            // Trigger file download
-            const link = document.createElement('a');
-            link.href = pdfUrl;
-            link.download = pdfUrl.split('/').pop() || 'book.pdf';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            toast.success('İndirme başladı! 📥', { id: 'dl' });
-        } catch (error) {
-            toast.error('İndirme hatası', { id: 'dl' });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleFavorite = async () => {
         if (!userId) {
@@ -182,44 +150,30 @@ export default function BookActions({ bookId, pdfUrl, userId: propUserId }) {
 
     return (
         <div className="space-y-4">
-            {/* Read Button - Prominent */}
-            <Button
-                onClick={handleRead}
-                variant="primary"
-                size="xl"
-                fullWidth
-                className="group"
-                icon={<FaBookOpen className="text-xl group-hover:scale-110 transition-transform" />}
-            >
-                Oku
-            </Button>
+            {/* Action Buttons Grid - 4 Icon Only Buttons */}
+            <div className="grid grid-cols-4 gap-3 h-12">
 
-            {/* Action Buttons Grid */}
-            <div className="grid grid-cols-4 gap-3">
-                {/* Download */}
+                {/* 1. Add to Library (BookOpen) */}
                 <Button
-                    onClick={handleDownload}
-                    title="İndir"
+                    title="Kütüphaneye Ekle"
                     variant="secondary"
-                    size="icon"
+                    className="w-full h-full"
                     fullWidth
-                    className="h-full"
-                    icon={<FaDownload />}
+                    icon={<FaBookOpen size={20} />}
                 />
 
-                {/* Favorite */}
+                {/* 2. Favorite */}
                 <Button
                     onClick={handleFavorite}
                     title={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-                    variant={isFavorite ? 'danger' : 'secondary'}
-                    size="icon"
+                    variant={isFavorite ? 'danger' : 'secondary'} // Danger makes it red/pink if favored
+                    className="w-full h-full"
                     fullWidth
-                    className="h-full"
-                    icon={isFavorite ? <FaCheck /> : <FaHeart />}
+                    icon={isFavorite ? <FaHeart size={20} /> : <FaHeart size={20} />}
                 />
 
-                {/* Add to Collection - With Dropdown */}
-                <div className="relative w-full aspect-square">
+                {/* 3. Add to Collection */}
+                <div className="relative w-full h-full">
                     <Button
                         onClick={() => {
                             if (!userId) toast.error('Giriş yapmalısınız');
@@ -227,15 +181,14 @@ export default function BookActions({ bookId, pdfUrl, userId: propUserId }) {
                         }}
                         title="Koleksiyona Ekle"
                         variant="secondary"
-                        size="icon"
                         fullWidth
-                        className={`h-full ${showCollectionMenu ? 'border-blue-500 bg-gray-700 text-white' : 'text-gray-400'}`}
-                        icon={<FaFolderPlus />}
+                        className={`w-full h-full ${showCollectionMenu ? 'border-blue-500 bg-gray-700 text-white' : 'text-gray-400'}`}
+                        icon={<FaFolderPlus size={20} />}
                     />
 
-                    {/* Collection Menu Dropdown */}
+                    {/* Collection Menu - Keep existing logic */}
                     {showCollectionMenu && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-2 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-2 z-50">
                             <div className="max-h-48 overflow-y-auto mb-2 scrollbar-thin scrollbar-thumb-gray-700">
                                 {collections.length > 0 ? collections.map(col => (
                                     <button
@@ -292,15 +245,14 @@ export default function BookActions({ bookId, pdfUrl, userId: propUserId }) {
                     )}
                 </div>
 
-                {/* Share */}
+                {/* 4. Share */}
                 <Button
                     onClick={handleShare}
                     title="Paylaş"
                     variant="secondary"
-                    size="icon"
+                    className="w-full h-full"
                     fullWidth
-                    className="h-full"
-                    icon={<FaShareAlt />}
+                    icon={<FaShareAlt size={20} />}
                 />
             </div>
         </div>

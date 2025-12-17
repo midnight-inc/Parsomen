@@ -1,107 +1,131 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { decrypt } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 
-// GET - Get user stats from real database
-export async function GET(req) {
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('session')?.value;
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
-        const session = await decrypt(token);
-        if (!session?.userId) {
-            return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-        }
+        const userId = session.user.id;
 
-        const userId = session.userId;
-
-        // Get reading progress stats
-        const readingProgress = await prisma.readingProgress.findMany({
-            where: { userId },
-            include: { book: { include: { category: true } } }
-        });
-
-        // Calculate total read time
-        const totalReadTimeSeconds = readingProgress.reduce((sum, p) => sum + (p.totalReadTime || 0), 0);
-        const totalReadTimeMinutes = Math.round(totalReadTimeSeconds / 60);
-        const totalReadTimeHours = Math.floor(totalReadTimeMinutes / 60);
-
-        // Get completed books (100% or from LibraryEntry)
+        // 1. Fetch all library entries with book details
         const libraryEntries = await prisma.libraryEntry.findMany({
             where: { userId },
-            include: { book: { include: { category: true } } }
+            include: {
+                book: {
+                    include: { category: true }
+                }
+            }
         });
 
+        // 2. Calculate basic counts
         const completedBooks = libraryEntries.filter(e => e.status === 'READ').length;
         const readingBooks = libraryEntries.filter(e => e.status === 'READING').length;
         const wantToReadBooks = libraryEntries.filter(e => e.status === 'WANT_TO_READ').length;
 
-        // Get total pages read
-        const totalPages = readingProgress.reduce((sum, p) => sum + (p.currentPage || 0), 0);
+        // 3. Calculate total pages (from completed books)
+        const totalPages = libraryEntries
+            .filter(e => e.status === 'READ')
+            .reduce((acc, curr) => acc + (curr.book.pages || 0), 0);
 
-        // Get user for streak
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { streak: true, level: true, xp: true }
-        });
+        // 4. Estimate Reading Time (Average 2 mins per page)
+        // Alternatively, use detailed logs if available, but page count is a good proxy.
+        const totalReadTimeMinutes = totalPages * 2;
+        const totalReadTimeHours = Math.floor(totalReadTimeMinutes / 60);
 
-        // Get top authors
+        // 5. Calculate Top Authors
         const authorCounts = {};
-        libraryEntries.forEach(entry => {
-            const author = entry.book.author;
-            authorCounts[author] = (authorCounts[author] || 0) + 1;
-        });
+        libraryEntries
+            .filter(e => e.status === 'READ')
+            .forEach(e => {
+                const author = e.book.author;
+                authorCounts[author] = (authorCounts[author] || 0) + 1;
+            });
 
         const topAuthors = Object.entries(authorCounts)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([name, count]) => ({ name, count }));
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
 
-        // Get genre distribution
+        // 6. Calculate Genre Distribution
         const genreCounts = {};
-        libraryEntries.forEach(entry => {
-            const genre = entry.book.category?.name || 'Genel';
+        const readEntries = libraryEntries.filter(e => e.status === 'READ');
+        const totalRead = readEntries.length;
+
+        readEntries.forEach(e => {
+            const genre = e.book.category.name;
             genreCounts[genre] = (genreCounts[genre] || 0) + 1;
         });
 
-        const totalGenreBooks = Object.values(genreCounts).reduce((a, b) => a + b, 0);
         const genreDistribution = Object.entries(genreCounts)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
             .map(([name, count]) => ({
                 name,
-                count,
-                percentage: totalGenreBooks > 0 ? Math.round((count / totalGenreBooks) * 100) : 0
-            }));
+                percentage: totalRead > 0 ? Math.round((count / totalRead) * 100) : 0
+            }))
+            .sort((a, b) => b.percentage - a.percentage)
+            .slice(0, 5);
 
-        // Get reviews count
-        const reviewsCount = await prisma.review.count({ where: { userId } });
+        // 7. Calculate Streak (Consecutive days with activity)
+        // We look at UserActivity to find consecutive days
+        const activities = await prisma.userActivity.findMany({
+            where: { userId },
+            select: { createdAt: true },
+            orderBy: { createdAt: 'desc' },
+            distinct: ['createdAt'] // Needs date truncation in SQL usually, but distinct purely on datetime won't work well
+            // Simplification: Fetch last 30 days activities and process in JS
+        });
+
+        // Helper to check streak in JS
+        let streak = 0;
+        if (activities.length > 0) {
+            // Get unique dates (YYYY-MM-DD)
+            const dates = new Set(activities.map(a => new Date(a.createdAt).toISOString().split('T')[0]));
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+            // If active today or yesterday, streak is alive
+            let currentDate = dates.has(today) ? today : (dates.has(yesterday) ? yesterday : null);
+
+            if (currentDate) {
+                streak = 1;
+                while (true) {
+                    const d = new Date(currentDate);
+                    d.setDate(d.getDate() - 1);
+                    const prevDate = d.toISOString().split('T')[0];
+                    if (dates.has(prevDate)) {
+                        streak++;
+                        currentDate = prevDate;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Also update user's streak field in DB if it differs significantly (optional sync)
 
         return NextResponse.json({
             success: true,
             stats: {
-                totalReadTimeSeconds,
-                totalReadTimeMinutes,
-                totalReadTimeHours,
-                totalPages,
                 completedBooks,
                 readingBooks,
                 wantToReadBooks,
-                totalBooks: libraryEntries.length,
-                streak: user?.streak || 0,
-                level: user?.level || 1,
-                xp: user?.xp || 0,
-                reviewsCount,
+                totalPages,
+                totalReadTimeHours,
+                totalReadTimeMinutes: totalReadTimeMinutes % 60,
+                streak,
                 topAuthors,
                 genreDistribution
             }
         });
+
     } catch (error) {
-        console.error('Stats fetch error:', error);
-        return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+        console.error('Stats API Error:', error);
+        return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -41,7 +41,7 @@ export async function GET(req, { params }) {
                 receiverId: userId,
                 read: false
             },
-            data: { read: true }
+            data: { read: true, status: 'READ' }
         });
 
         // Get recipient info

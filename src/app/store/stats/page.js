@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { FaFire, FaBook, FaClock, FaStar, FaChartPie, FaCalendarAlt, FaTrophy, FaUserAstronaut, FaSpinner } from 'react-icons/fa';
+import { FaFire, FaBook, FaClock, FaStar, FaChartPie, FaCalendarAlt, FaTrophy, FaUserAstronaut, FaSpinner, FaEgg, FaSearch, FaCoffee, FaShieldAlt, FaBullseye, FaGhost, FaHatWizard } from 'react-icons/fa';
 
 // Heatmap component (demo - would need real data API)
 function ReadingHeatmap() {
@@ -64,10 +64,14 @@ function ProgressRing({ progress, color, size = 120, label, value }) {
 }
 
 const personalities = [
-    { id: 'night_owl', name: 'Gece Kuşu', emoji: '🦉', min: 0 },
-    { id: 'casual', name: 'Rahat Okur', emoji: '📖', min: 5 },
-    { id: 'bookworm', name: 'Kitap Kurdu', emoji: '🐛', min: 20 },
-    { id: 'page_monster', name: 'Sayfa Canavarı', emoji: '⚡', min: 50 },
+    { id: 'newbie', name: 'Yeni Başlayan', icon: <FaEgg />, min: 0 },
+    { id: 'curious', name: 'Meraklı Okur', icon: <FaSearch />, min: 1 },
+    { id: 'weekend', name: 'Haftasonu Keyifçisi', icon: <FaCoffee />, min: 5 },
+    { id: 'enthusiast', name: 'Kitap Tutkunu', icon: <FaBook />, min: 10 },
+    { id: 'guardian', name: 'Kütüphane Muhafızı', icon: <FaShieldAlt />, min: 25 },
+    { id: 'hunter', name: 'Bilgi Avcısı', icon: <FaBullseye />, min: 50 },
+    { id: 'monster', name: 'Sayfa Canavarı', icon: <FaGhost />, min: 100 },
+    { id: 'sage', name: 'Efsanevi Bilge', icon: <FaHatWizard />, min: 250 },
 ];
 
 export default function StatsPage() {
@@ -126,7 +130,7 @@ export default function StatsPage() {
                 <section className="mb-12">
                     <div className="bg-gradient-to-r from-purple-900/50 to-indigo-900/50 rounded-3xl p-8 border border-purple-500/30">
                         <div className="flex items-center gap-6">
-                            <div className="text-6xl">{personality.emoji}</div>
+                            <div className="text-6xl">{personality.icon}</div>
                             <div>
                                 <div className="text-sm text-purple-400 uppercase font-bold tracking-wider mb-1">Okuma Kişiliğin</div>
                                 <h2 className="text-3xl font-black text-white mb-1">{personality.name}</h2>

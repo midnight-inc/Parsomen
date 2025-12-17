@@ -139,7 +139,8 @@ export async function POST(req) {
                     receiverId,
                     content: content?.trim() || null,
                     mediaType: mediaType || null,
-                    mediaUrl: mediaUrl || null
+                    mediaUrl: mediaUrl || null,
+                    status: 'SENT'
                 },
                 include: {
                     sender: {

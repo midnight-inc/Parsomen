@@ -33,6 +33,50 @@ export async function GET(request) {
             where.categoryId = parseInt(categoryId);
         }
 
+        const seed = searchParams.get('seed');
+
+        // If seed is provided (e.g. for Daily Book), use it to pick a random book consistently
+        if (seed) {
+            // Simple hash function for the seed string
+            let hash = 0;
+            for (let i = 0; i < seed.length; i++) {
+                hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+                hash |= 0; // Convert to 32bit integer
+            }
+
+            // Fetch a reasonable pool of recent books to pick from (e.g. last 50)
+            const count = await prisma.book.count();
+            const poolSize = Math.min(count, 50);
+
+            // Determine a stable index based on hash
+            const stableIndex = Math.abs(hash) % poolSize;
+
+            // Fetch that specific book (or books starting from that offset)
+            // optimizing by taking the latest 'poolSize' relative to ID/Date is tricky with just 'skip'
+            // Better approach: fetch ID list of last 50, pick one.
+
+            const candidates = await prisma.book.findMany({
+                where,
+                select: { id: true },
+                orderBy: { id: 'desc' },
+                take: poolSize
+            });
+
+            if (candidates.length > 0) {
+                // Re-map stableIndex to candidates length
+                const targetId = candidates[stableIndex % candidates.length].id;
+
+                // Now fetch full details for that single target (or multiple if limit > 1)
+                // For now assuming limit=1 for daily book scenario mostly
+                const seededBooks = await prisma.book.findMany({
+                    where: { id: targetId },
+                    include: { category: { select: { id: true, name: true } } }
+                });
+
+                return NextResponse.json(seededBooks);
+            }
+        }
+
         const books = await prisma.book.findMany({
             where,
             orderBy: { id: 'desc' },
@@ -67,12 +111,12 @@ export async function POST(request) {
         const rateLimitError = await checkRateLimit(request, 'heavy');
         if (rateLimitError) return rateLimitError;
 
-        const json = await request.json();
+        const { title, author, category, categoryId: reqCategoryId, pages, year, description, cover, visibility } = await request.json();
 
         // 3. Duplicate Check
         const existingBook = await prisma.book.findFirst({
             where: {
-                title: { equals: json.title, mode: 'insensitive' }
+                title: { equals: title, mode: 'insensitive' }
             }
         });
 
@@ -84,7 +128,7 @@ export async function POST(request) {
         }
 
         // 3. Input Validation
-        if (!json.title || !json.author) {
+        if (!title || !author) {
             return NextResponse.json({
                 success: false,
                 error: 'Kitap başlığı ve yazar gerekli.'
@@ -92,28 +136,28 @@ export async function POST(request) {
         }
 
         // 4. Category handling (Case Insensitive)
-        let categoryId = null;
-        if (json.category) {
-            const category = await prisma.category.findFirst({
+        let finalCategoryId = null;
+        if (category) {
+            const existingCategory = await prisma.category.findFirst({
                 where: {
-                    name: { equals: json.category, mode: 'insensitive' }
+                    name: { equals: category, mode: 'insensitive' }
                 }
             });
 
-            if (category) {
-                categoryId = category.id;
+            if (existingCategory) {
+                finalCategoryId = existingCategory.id;
             } else {
                 // Create category if doesn't exist (Title Case)
                 const newCat = await prisma.category.create({
-                    data: { name: json.category }
+                    data: { name: category }
                 });
-                categoryId = newCat.id;
+                finalCategoryId = newCat.id;
             }
-        } else if (json.categoryId) {
-            categoryId = parseInt(json.categoryId);
+        } else if (reqCategoryId) {
+            finalCategoryId = parseInt(reqCategoryId);
         }
 
-        if (!categoryId) {
+        if (!finalCategoryId) {
             return NextResponse.json({
                 success: false,
                 error: 'Kategori gerekli.'
@@ -123,16 +167,15 @@ export async function POST(request) {
         // 5. Create book with validated data
         const book = await prisma.book.create({
             data: {
-                title: String(json.title).slice(0, 200), // Limit title length
-                author: String(json.author).slice(0, 100),
-                categoryId: categoryId,
-                cover: json.cover || null,
-                pdfUrl: json.pdfUrl || null,
-                pages: json.pages ? parseInt(json.pages) : null,
-                year: json.year ? parseInt(json.year) : null,
-                description: json.description ? String(json.description).slice(0, 5000) : null,
-                visibility: ['PUBLIC', 'ADMIN_ONLY', 'PRIVATE'].includes(json.visibility)
-                    ? json.visibility
+                title: String(title).slice(0, 200), // Limit title length
+                author: String(author).slice(0, 100),
+                categoryId: finalCategoryId,
+                cover: cover || null,
+                pages: pages ? parseInt(pages) : null,
+                year: year ? parseInt(year) : null,
+                description: description ? String(description).slice(0, 5000) : null,
+                visibility: ['PUBLIC', 'ADMIN_ONLY', 'PRIVATE'].includes(visibility)
+                    ? visibility
                     : 'PUBLIC',
                 isNew: true,
                 rating: 0,

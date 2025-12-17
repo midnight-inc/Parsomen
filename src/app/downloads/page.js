@@ -24,6 +24,9 @@ export default async function DownloadsPage() {
             {downloads.length === 0 ? (
                 <div className="text-center py-20 bg-gray-900/50 rounded-xl border border-gray-800 text-gray-400">
                     <p className="text-xl mb-4">Henüz bir kitap indirmedin.</p>
+                    <Link href="/store" className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-colors">
+                        Mağazaya Git
+                    </Link>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -47,9 +50,20 @@ export default async function DownloadsPage() {
                                 <p className="text-xs text-gray-600 mt-1">İndirilme: {new Date(item.downloadedAt).toLocaleDateString('tr-TR')}</p>
                             </div>
 
-                            <button className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg font-bold hover:bg-blue-600/40 transition-colors flex items-center gap-2">
-                                <FaDownload /> Tekrar İndir
-                            </button>
+                            {item.book.pdfUrl ? (
+                                <a
+                                    href={item.book.pdfUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg font-bold hover:bg-blue-600/40 transition-colors flex items-center gap-2"
+                                >
+                                    <FaDownload /> Tekrar İndir
+                                </a>
+                            ) : (
+                                <button disabled className="bg-gray-800 text-gray-600 px-4 py-2 rounded-lg font-bold cursor-not-allowed flex items-center gap-2">
+                                    <FaDownload /> PDF Yok
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

@@ -1,29 +1,77 @@
 "use client";
+import { FaFire, FaTrophy } from 'react-icons/fa';
 import SteamHeader from './SteamHeader';
 import RefreshButton from '../ui/RefreshButton';
 import BackButton from '../ui/BackButton';
 import ScrollToTop from '../ui/ScrollToTop';
+import ToastProvider from '../ui/ToastProvider';
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+
+import LiveStatsTicker from '../ui/LiveStatsTicker';
 
 export default function MainLayout({ children }) {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
   const pathname = usePathname();
 
-  // Pages that don't need the header (Login/Register/Maintenance)
+  // Daily Check Logic
+  useEffect(() => {
+    if (!user) return;
+    const checkDaily = async () => {
+      try {
+        const res = await fetch('/api/gamification/daily-check', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success && data.firstTimeToday) {
+          toast.success(
+            <div className="flex flex-col">
+              <span className="font-bold text-lg flex items-center gap-2"><FaFire className="text-orange-500" /> Seri: {data.streak} Gün!</span>
+              <span className="text-sm">+{data.pointsEarned} Puan Kazandın</span>
+            </div>,
+            {
+              duration: 5000,
+              icon: <FaTrophy className="text-yellow-500" />,
+              style: {
+                borderRadius: '12px',
+                background: '#1a1a2e',
+                color: '#fff',
+                border: '1px solid #7c3aed',
+              },
+            }
+          );
+        }
+      } catch (e) { }
+    };
+    checkDaily();
+  }, [user]);
+
+  // Pages that don't need the header
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/maintenance');
+  const isAdminPage = pathname?.startsWith('/admin');
 
   if (isAuthPage) return <main className="min-h-screen bg-black">{children}</main>;
 
-  // Show loading state while checking auth
-  // Non-blocking loading: We render the app immediately.
-  // The Header and specific components can handle 'loading' state individually (e.g. showing skeletons).
-  // This allows the UI to paint instantly.
+  if (isAdminPage) {
+    return (
+      <div className="min-h-screen bg-black text-[#e0e0e0]" suppressHydrationWarning>
+        {children}
+        <ToastProvider />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-black text-[#e0e0e0]" suppressHydrationWarning>
+
       {/* Steam Header replaces both Sidebar and Navbar */}
       <SteamHeader />
+
+      {/* Live Activity Ticker - Sticky below header */}
+      <div className="sticky top-0 z-40">
+        <LiveStatsTicker />
+      </div>
 
       {/* Main Content Area */}
       <main className="flex-1 relative w-full overflow-y-auto custom-scrollbar">

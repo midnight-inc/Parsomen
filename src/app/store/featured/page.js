@@ -1,88 +1,97 @@
+
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaStar, FaFire, FaTheaterMasks, FaBookOpen, FaQuestionCircle, FaClock, FaFilm } from 'react-icons/fa';
+import { FaFire, FaTimes, FaInfoCircle, FaBookOpen, FaStar, FaMapMarkedAlt, FaCompass, FaCloudRain, FaSmile, FaHeart, FaGhost, FaBrain, FaRocket, FaLandmark, FaTheaterMasks, FaQuestionCircle } from 'react-icons/fa';
 import LiveReadingTicker from '@/components/store/LiveReadingTicker';
 import QuoteOfTheDay from '@/components/store/QuoteOfTheDay';
+import { Suspense } from 'react';
 
 // Mood options
 const moods = [
-    { id: 'sad', label: 'Hüzünlü', emoji: '😢', gradient: 'from-blue-900 to-gray-900' },
-    { id: 'happy', label: 'Neşeli', emoji: '😄', gradient: 'from-yellow-600 to-orange-600' },
-    { id: 'adventure', label: 'Maceracı', emoji: '🗺️', gradient: 'from-green-700 to-teal-600' },
-    { id: 'romantic', label: 'Romantik', emoji: '💕', gradient: 'from-pink-600 to-rose-500' },
-    { id: 'thriller', label: 'Gerilim', emoji: '😱', gradient: 'from-red-900 to-black' },
-    { id: 'philosophical', label: 'Düşündürücü', emoji: '🤔', gradient: 'from-purple-900 to-indigo-800' },
+    { id: 'sad', label: 'Hüzünlü', icon: <FaCloudRain />, gradient: 'from-blue-900 to-gray-900' },
+    { id: 'happy', label: 'Neşeli', icon: <FaSmile />, gradient: 'from-yellow-600 to-orange-600' },
+    { id: 'adventure', label: 'Maceracı', icon: <FaMapMarkedAlt />, gradient: 'from-green-700 to-teal-600' },
+    { id: 'romantic', label: 'Romantik', icon: <FaHeart />, gradient: 'from-pink-600 to-rose-500' },
+    { id: 'thriller', label: 'Gerilim', icon: <FaGhost />, gradient: 'from-red-900 to-black' },
+    { id: 'philosophical', label: 'Düşündürücü', icon: <FaBrain />, gradient: 'from-purple-900 to-indigo-800' },
+    { id: 'sci-fi', label: 'Bilim Kurgu', icon: <FaRocket />, gradient: 'from-indigo-900 to-blue-800' },
+    { id: 'history', label: 'Tarih', icon: <FaLandmark />, gradient: 'from-amber-900 to-yellow-900' },
 ];
 
-export const dynamic = 'force-dynamic'; // Ensure page regenerates on every request for randomness
+export const dynamic = 'force-dynamic';
+
+async function getSpotlightBook() {
+    try {
+        return await prisma.book.findFirst({
+            where: { rating: { gte: 4.0 } }, // Lowered threshold slightly
+            include: { category: true },
+            orderBy: { id: 'desc' } // Newest high rated
+        });
+    } catch (e) {
+        console.error("Spotlight Fetch Error:", e);
+        return null;
+    }
+}
+
+async function getPopularBooks() {
+    try {
+        return await prisma.book.findMany({
+            include: {
+                category: true,
+                _count: { select: { library: true } }
+            },
+            orderBy: { library: { _count: 'desc' } },
+            take: 10
+        });
+    } catch (e) {
+        console.error("Popular Books Fetch Error:", e);
+        return [];
+    }
+}
+
+async function getPopularCategories() {
+    try {
+        return await prisma.category.findMany({
+            include: { _count: { select: { books: true } } },
+            orderBy: { books: { _count: 'desc' } },
+            take: 6
+        });
+    } catch (e) {
+        console.error("Categories Fetch Error:", e);
+        return [];
+    }
+}
+
+async function getBlindDateBooks() {
+    try {
+        const totalBooks = await prisma.book.count();
+        const skip = Math.max(0, Math.floor(Math.random() * Math.max(0, totalBooks - 4)));
+        return await prisma.book.findMany({
+            include: { category: true },
+            skip: skip,
+            take: 4
+        });
+    } catch (e) {
+        console.error("Blind Date Fetch Error:", e);
+        return [];
+    }
+}
 
 export default async function FeaturedPage() {
-    // 1. Fetch featured book for Spotlight
-    const spotlightBook = await prisma.book.findFirst({
-        where: { rating: { gte: 4.5 } },
-        include: { category: true },
-        orderBy: { id: 'desc' }
-    });
-
-    // 2. Fetch "Rising Stars"
-    const risingStars = await prisma.book.findMany({
-        where: { rating: { gte: 4.0 } },
-        include: { category: true },
-        orderBy: { rating: 'desc' },
-        take: 6
-    });
-
-    // 3. Randomize "Blind Date" Books
-    const totalBooks = await prisma.book.count();
-    const skip = Math.max(0, Math.floor(Math.random() * Math.max(0, totalBooks - 4)));
-
-    const blindDateBooks = await prisma.book.findMany({
-        include: { category: true },
-        skip: skip,
-        take: 4
-    });
-
-    // 4. Fetch Popular Categories
-    const popularCategories = await prisma.category.findMany({
-        include: {
-            _count: {
-                select: { books: true }
-            }
-        },
-        orderBy: {
-            books: {
-                _count: 'desc'
-            }
-        },
-        take: 6
-    });
-
-    // 5. Film Books
-    const filmBooks = await prisma.book.findMany({
-        include: { category: true },
-        take: 4
-    });
-
-    // 6. Popular Books (Most Read)
-    const popularBooks = await prisma.book.findMany({
-        include: {
-            category: true,
-            _count: {
-                select: { readingProgress: true }
-            }
-        },
-        orderBy: {
-            readingProgress: {
-                _count: 'desc'
-            }
-        },
-        take: 10
-    });
+    // Parallel data fetching
+    const [spotlightBook, popularBooks, popularCategories, blindDateBooks] = await Promise.all([
+        getSpotlightBook(),
+        getPopularBooks(),
+        getPopularCategories(),
+        getBlindDateBooks()
+    ]);
 
     return (
         <div className="min-h-screen bg-black text-white pb-20 overflow-x-hidden">
-            <LiveReadingTicker />
+            <Suspense fallback={<div className="w-full h-12 bg-gray-800 animate-pulse mb-8" />}>
+                <LiveReadingTicker />
+            </Suspense>
 
             <div className="pt-8 px-4 sm:px-8 max-w-[1600px] mx-auto">
                 {/* Page Header */}
@@ -96,27 +105,21 @@ export default async function FeaturedPage() {
                 </div>
 
                 {/* CINEMATIC HERO SPOTLIGHT */}
-                {spotlightBook && (
+                {spotlightBook ? (
                     <section className="mb-20">
                         <div className="relative rounded-[3rem] overflow-hidden bg-gray-900 border border-white/5 shadow-2xl group">
-                            {/* Animated Background Glow */}
                             <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 group-hover:animate-spin-slow opacity-50 blur-3xl pointer-events-none" />
-
-                            {/* Content */}
                             <div className="relative z-10 p-8 md:p-16 flex flex-col md:flex-row gap-12 items-center">
-                                {/* 3D Cover Effect Area */}
                                 <div className="w-64 md:w-80 flex-shrink-0 perspective-1000 group-hover:scale-105 transition-transform duration-500">
                                     <div className="relative aspect-[2/3] rounded-2xl shadow-2xl transform rotate-y-12 group-hover:rotate-y-0 transition-transform duration-700 bg-gray-800">
                                         {spotlightBook.cover ? (
                                             <Image src={spotlightBook.cover} alt={spotlightBook.title} fill className="object-cover rounded-2xl" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center">Kapak Yok</div>
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">Kapak Yok</div>
                                         )}
-                                        {/* Reflection */}
                                         <div className="absolute inset-0 bg-gradient-to-tr from-black/60 to-transparent rounded-2xl pointer-events-none" />
                                     </div>
                                 </div>
-
                                 <div className="flex-1 text-center md:text-left">
                                     <div className="inline-flex items-center gap-2 bg-orange-500/10 text-orange-400 px-4 py-1.5 rounded-full text-sm font-bold tracking-wider mb-6 border border-orange-500/20">
                                         <FaFire /> HAFTANIN YILDIZI
@@ -126,7 +129,6 @@ export default async function FeaturedPage() {
                                     <p className="text-gray-400 leading-relaxed mb-8 max-w-2xl mx-auto md:mx-0 text-lg">
                                         {spotlightBook.description || 'Bu kitap, sürükleyici anlatımı ve derin karakter analizleriyle editör ekibimizden tam not aldı.'}
                                     </p>
-
                                     <Link
                                         href={`/books/${spotlightBook.id}`}
                                         className="inline-flex items-center gap-3 bg-white text-black font-black text-lg px-10 py-4 rounded-2xl hover:bg-gray-200 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
@@ -137,11 +139,17 @@ export default async function FeaturedPage() {
                             </div>
                         </div>
                     </section>
+                ) : (
+                    <div className="mb-20 p-8 rounded-3xl bg-gray-900 border border-white/5 text-center text-gray-500">
+                        Öne çıkan kitap yüklenemedi.
+                    </div>
                 )}
 
-                <QuoteOfTheDay />
+                <Suspense fallback={<div className="h-48 w-full bg-gray-900/50 animate-pulse rounded-3xl mb-16" />}>
+                    <QuoteOfTheDay />
+                </Suspense>
 
-                {/* POPULAR BOOKS - MOST READ */}
+                {/* POPULAR BOOKS */}
                 <section className="mb-20">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="bg-orange-500/20 p-3 rounded-xl border border-orange-500/30">
@@ -168,14 +176,14 @@ export default async function FeaturedPage() {
                                 <h4 className="font-bold text-white text-lg line-clamp-1 group-hover:text-orange-400 transition-colors">{book.title}</h4>
                                 <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
                                     <span>{book.author}</span>
-                                    <span className="flex items-center gap-1"><FaBookOpen /> {book._count?.readingProgress || 0} okur</span>
+                                    <span className="flex items-center gap-1"><FaBookOpen /> {book._count?.library || 0} okur</span>
                                 </div>
                             </Link>
                         ))}
                     </div>
                 </section>
 
-                {/* HORIZONTAL COLLECTION SHOWCASE */}
+                {/* COLLECTION SHOWCASE */}
                 <section className="mb-20">
                     <div className="flex items-center justify-between mb-8">
                         <div>
@@ -183,8 +191,6 @@ export default async function FeaturedPage() {
                             <p className="text-gray-500">Ruh haline göre seçilmiş listeler</p>
                         </div>
                     </div>
-
-                    {/* Horizontal Scroll Container */}
                     <div className="flex gap-4 overflow-x-auto pb-8 -mx-4 px-4 snap-x scrollbar-hide flex-nowrap w-[100vw] md:w-full md:mask-linear-fade">
                         {moods.map(mood => (
                             <Link
@@ -192,9 +198,9 @@ export default async function FeaturedPage() {
                                 href={`/store?mood=${mood.id}`}
                                 className={`flex-shrink-0 w-64 snap-center bg-gradient-to-br ${mood.gradient} p-8 rounded-[2rem] relative overflow-hidden group hover:w-72 transition-all duration-300`}
                             >
-                                <div className="absolute top-0 right-0 p-4 opacity-20 text-6xl group-hover:scale-110 transition-transform">{mood.emoji}</div>
+                                <div className="absolute top-0 right-0 p-4 opacity-20 text-6xl group-hover:scale-110 transition-transform">{mood.emoji || mood.icon}</div>
                                 <div className="relative z-10 h-full flex flex-col justify-end">
-                                    <div className="text-4xl mb-2">{mood.emoji}</div>
+                                    <div className="text-4xl mb-2 text-white/80 group-hover:scale-110 transition-transform">{mood.icon || mood.emoji}</div>
                                     <h3 className="font-bold text-xl text-white mb-1">{mood.label}</h3>
                                     <p className="text-white/60 text-sm">Özel seçki</p>
                                 </div>
@@ -203,7 +209,7 @@ export default async function FeaturedPage() {
                     </div>
                 </section>
 
-                {/* POPULAR CATEGORIES - NEW SECTION */}
+                {/* POPULAR CATEGORIES */}
                 <section className="mb-20">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="bg-blue-500/20 p-3 rounded-xl border border-blue-500/30">
@@ -236,7 +242,7 @@ export default async function FeaturedPage() {
                     </div>
                 </section>
 
-                {/* KÖR RANDEVU - Now with Randomization */}
+                {/* BLIND DATE */}
                 <section className="mb-20">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="bg-pink-500/20 p-3 rounded-xl border border-pink-500/30 backdrop-blur-md">
@@ -249,7 +255,6 @@ export default async function FeaturedPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {blindDateBooks.map((book, idx) => {
-                            // Generate stable random gradients based on ID
                             const gradients = [
                                 'from-pink-500/20 via-purple-500/20 to-indigo-500/20',
                                 'from-blue-500/20 via-teal-500/20 to-emerald-500/20',
@@ -265,18 +270,11 @@ export default async function FeaturedPage() {
                                     className="group relative h-[400px] perspective-1000"
                                 >
                                     <div className={`relative w-full h-full rounded-[2rem] overflow-hidden transition-all duration-500 bg-gradient-to-br ${bgGradient} border border-white/10 group-hover:border-white/30 shadow-2xl group-hover:shadow-pink-500/20 group-hover:-translate-y-2`}>
-
-                                        {/* Dynamic Noise Texture & Glass Effect */}
                                         <div className="absolute inset-0 opacity-20 bg-[url('/patterns/noise.png')] mix-blend-overlay" />
                                         <div className="absolute inset-0 backdrop-blur-3xl" />
-
-                                        {/* Animated Background Blobs */}
                                         <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
                                         <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-black/40 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
-
-                                        {/* Main Content */}
                                         <div className="relative z-10 h-full p-8 flex flex-col items-center justify-between text-center">
-
                                             <div className="mt-8 relative">
                                                 <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-5xl shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.2)] transition-all duration-500 group-hover:scale-110">
                                                     <span className="group-hover:animate-pulse">?</span>
@@ -285,7 +283,6 @@ export default async function FeaturedPage() {
                                                     GİZEMLİ
                                                 </div>
                                             </div>
-
                                             <div className="space-y-4 w-full">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-pink-300">
@@ -295,12 +292,10 @@ export default async function FeaturedPage() {
                                                         {(book.pages || 324)} sf
                                                     </span>
                                                 </div>
-
                                                 <div className="text-white/60 text-sm italic font-serif px-2">
                                                     "{book.description ? book.description.substring(0, 60) : 'Duygusal derinliği olan, sizi başka diyarlara götürecek...'}..."
                                                 </div>
                                             </div>
-
                                             <div className="w-full">
                                                 <div className="w-full py-4 rounded-xl bg-white/10 border border-white/10 font-bold tracking-widest hover:bg-white hover:text-black transition-all duration-300 group-hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
                                                     <FaTheaterMasks className="text-lg" />

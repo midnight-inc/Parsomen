@@ -27,7 +27,7 @@ export async function GET(req) {
             }),
 
             // Get user's library
-            prisma.library.findMany({
+            prisma.libraryEntry.findMany({
                 where: { userId: session.user.id },
                 select: { bookId: true }
             }),

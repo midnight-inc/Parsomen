@@ -27,6 +27,80 @@ export default function ReviewSection({ bookId }) {
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
+    // Mention Suggestions
+    const [suggestions, setSuggestions] = useState([]);
+
+    // Suggestion logic
+    const fetchSuggestions = async (query) => {
+        try {
+            const res = await fetch(`/api/users/suggestions?q=${query}`);
+            const data = await res.json();
+            setSuggestions(data.users || []);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleMentionClick = (username, isReply = false) => {
+        if (isReply) {
+            const words = replyText.split(/([\s\n]+)/);
+            let lastIndex = -1;
+            for (let i = words.length - 1; i >= 0; i--) {
+                if (words[i].startsWith('@') && !words[i].includes(' ')) {
+                    lastIndex = i;
+                    break;
+                }
+            }
+            if (lastIndex !== -1) {
+                words[lastIndex] = `@${username} `;
+                setReplyText(words.join(''));
+            } else {
+                setReplyText(replyText + `@${username} `);
+            }
+        } else {
+            const words = text.split(/([\s\n]+)/);
+            let lastIndex = -1;
+            for (let i = words.length - 1; i >= 0; i--) {
+                if (words[i].startsWith('@') && !words[i].includes(' ')) {
+                    lastIndex = i;
+                    break;
+                }
+            }
+            if (lastIndex !== -1) {
+                words[lastIndex] = `@${username} `;
+                setText(words.join(''));
+            } else {
+                setText(text + `@${username} `);
+            }
+        }
+        setSuggestions([]);
+    };
+
+    const Link = require('next/link').default || require('next/link');
+
+    const renderContentWithMentions = (text) => {
+        if (!text) return null;
+
+        const parts = text.split(/(@[\w_]+)/g);
+
+        return parts.map((part, index) => {
+            if (part.startsWith('@') && part.length > 1) {
+                const username = part.substring(1);
+                return (
+                    <Link
+                        key={index}
+                        href={`/profile/${username}`}
+                        className="text-blue-400 font-bold hover:underline hover:text-blue-300 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {part}
+                    </Link>
+                );
+            }
+            return part;
+        });
+    };
+
     useEffect(() => {
         fetchReviews();
     }, [bookId, sortBy]);
@@ -216,7 +290,9 @@ export default function ReviewSection({ bookId }) {
                     </div>
 
                     {/* Content */}
-                    <p className="text-gray-400 text-sm mt-2 leading-relaxed">{review.text}</p>
+                    <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+                        {renderContentWithMentions(review.text)}
+                    </p>
 
                     {/* Actions */}
                     <div className="flex items-center gap-4 mt-3">
@@ -264,12 +340,43 @@ export default function ReviewSection({ bookId }) {
 
                     {/* Reply Input */}
                     {replyingTo === review.id && (
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex gap-2 relative">
+                            {/* Reply Suggestions */}
+                            {suggestions.length > 0 && replyingTo === review.id && (
+                                <div className="absolute z-[100] left-0 bottom-full mb-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                                    {suggestions.map(u => (
+                                        <button
+                                            type="button"
+                                            key={u.id}
+                                            onClick={() => handleMentionClick(u.username, true)}
+                                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-800 transition-colors text-left border-b border-gray-800/50 last:border-0"
+                                        >
+                                            <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden relative">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={u.avatar || '/default-avatar.png'} alt={u.username} className="w-full h-full object-cover" />
+                                            </div>
+                                            <span className="text-white font-bold text-sm">{u.username}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                             <input
                                 type="text"
                                 value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                placeholder="Yanıtınızı yazın..."
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setReplyText(val);
+
+                                    const lastWord = val.split(/[\s\n]+/).pop();
+                                    if (lastWord && lastWord.startsWith('@')) {
+                                        const query = lastWord.substring(1);
+                                        if (query.length === 0) fetchSuggestions('');
+                                        else fetchSuggestions(query);
+                                    } else {
+                                        setSuggestions([]);
+                                    }
+                                }}
+                                placeholder="Yanıtınızı yazın... (@bahset)"
                                 className="flex-1 bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 outline-none"
                             />
                             <button
@@ -340,13 +447,46 @@ export default function ReviewSection({ bookId }) {
                             </button>
                         ))}
                     </div>
-                    <textarea
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        placeholder="Bu kitap hakkında ne düşünüyorsun?"
-                        required
-                        className="w-full bg-black/40 border border-gray-700 rounded-xl p-4 text-white focus:border-indigo-500 outline-none h-32 resize-none"
-                    />
+                    <div className="relative">
+                        <textarea
+                            value={text}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setText(val);
+
+                                const lastWord = val.split(/[\s\n]+/).pop();
+                                if (lastWord && lastWord.startsWith('@')) {
+                                    const query = lastWord.substring(1);
+                                    if (query.length === 0) fetchSuggestions('');
+                                    else fetchSuggestions(query);
+                                } else {
+                                    setSuggestions([]);
+                                }
+                            }}
+                            placeholder="Bu kitap hakkında ne düşünüyorsun? (@bahset)"
+                            required
+                            className="w-full bg-black/40 border border-gray-700 rounded-xl p-4 text-white focus:border-indigo-500 outline-none h-32 resize-none"
+                        />
+                        {/* Suggestions */}
+                        {suggestions.length > 0 && !replyingTo && (
+                            <div className="absolute z-[100] left-0 bottom-full mb-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                                {suggestions.map(u => (
+                                    <button
+                                        type="button"
+                                        key={u.id}
+                                        onClick={() => handleMentionClick(u.username, false)}
+                                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-800 transition-colors text-left border-b border-gray-800/50 last:border-0"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden relative">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={u.avatar || '/default-avatar.png'} alt={u.username} className="w-full h-full object-cover" />
+                                        </div>
+                                        <span className="text-white font-bold text-sm">{u.username}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <div className="flex gap-3">
                         <button
                             type="submit"

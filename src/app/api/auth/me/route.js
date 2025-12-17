@@ -34,7 +34,23 @@ export async function GET() {
             xp: true,
             points: true,
             font: true,
-            theme: true
+            theme: true,
+            inventory: {
+                where: {
+                    equipped: true,
+                    item: { type: 'FRAME' }
+                },
+                include: {
+                    item: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                            rarity: true
+                        }
+                    }
+                }
+            }
             // Removed badges & reviews to optimize initial load
         }
     });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { updateQuestProgress, isMarathonActive } from '@/lib/gamification';
 import { getSession } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rateLimit';
 
@@ -140,9 +141,12 @@ export async function POST(req) {
 
         // Gamification: Add XP (only for new top-level reviews)
         if (!isReply) {
+            let xp = 10;
+            if (isMarathonActive()) xp *= 2;
+
             await prisma.user.update({
                 where: { id: session.user.id },
-                data: { xp: { increment: 10 } }
+                data: { xp: { increment: xp } }
             });
 
             // Recalculate book rating
@@ -155,6 +159,9 @@ export async function POST(req) {
                 where: { id: bookId },
                 data: { rating: parseFloat(avgRating.toFixed(1)) }
             });
+
+            // TRIGGER QUEST: WRITE_REVIEW
+            await updateQuestProgress(session.user.id, 'WRITE_REVIEW', 1);
         }
 
         return NextResponse.json(review);

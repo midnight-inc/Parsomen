@@ -1,16 +1,19 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { FaEdit, FaBookOpen, FaClock, FaBook, FaCheckCircle, FaSpinner, FaSave, FaTimes, FaCamera, FaLayerGroup, FaStar, FaCommentAlt, FaHeart, FaUsers } from 'react-icons/fa';
 import { IconRenderer } from '@/components/ui/IconHelper';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import ReadingGoalCard from '@/components/gamification/ReadingGoalCard';
+import DuelList from '@/components/gamification/DuelList';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PublicProfilePage() {
     const params = useParams();
     const router = useRouter();
     const { username } = params;
+    const { reloadUser } = useAuth();
 
     // State
     const [profileData, setProfileData] = useState(null);
@@ -53,6 +56,58 @@ export default function PublicProfilePage() {
         }
     };
 
+    const fileInputRef = useRef(null);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validation
+        if (!file.type.startsWith('image/')) {
+            toast.error('Lütfen geçerli bir resim dosyası seçin');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Dosya boyutu 5MB\'dan küçük olmalı');
+            return;
+        }
+
+        setUploadingAvatar(true);
+        const loadingToast = toast.loading('Resim yükleniyor...');
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setEditForm(prev => ({ ...prev, avatar: data.url }));
+                toast.success('Resim yüklendi!', { id: loadingToast });
+            } else {
+                toast.error(data.error || 'Yükleme başarısız', { id: loadingToast });
+            }
+        } catch (error) {
+            console.error('Upload error', error);
+            toast.error('Bağlantı hatası', { id: loadingToast });
+        } finally {
+            setUploadingAvatar(false);
+            // Reset input so same file can be selected again if needed
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
     const handleSave = async () => {
         setSaving(true);
         const loadingToast = toast.loading('Kaydediliyor...');
@@ -68,11 +123,13 @@ export default function PublicProfilePage() {
 
             if (res.ok) {
                 toast.success('Profil güncellendi', { id: loadingToast });
+                await reloadUser(); // Sync header & session
                 setIsEditing(false);
                 if (editForm.username !== username) {
                     router.push(`/profile/${editForm.username}`);
                 } else {
                     fetchProfile();
+                    router.refresh();
                 }
             } else {
                 toast.error(data.error + (data.details ? `: ${data.details}` : '') || 'Güncelleme başarısız', { id: loadingToast });
@@ -169,15 +226,24 @@ export default function PublicProfilePage() {
                                 </div>
 
                                 {isEditing && (
-                                    <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center transition-opacity cursor-pointer">
-                                        <FaCamera className="text-white text-2xl" />
+                                    <div
+                                        onClick={handleAvatarClick}
+                                        className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center transition-opacity cursor-pointer hover:bg-black/70 group/edit"
+                                    >
+                                        {uploadingAvatar ? (
+                                            <FaSpinner className="text-white text-2xl animate-spin" />
+                                        ) : (
+                                            <>
+                                                <FaCamera className="text-white text-2xl mb-1 group-hover/edit:scale-110 transition-transform" />
+                                                <span className="text-[10px] text-white font-medium">Değiştir</span>
+                                            </>
+                                        )}
                                         <input
-                                            type="text"
-                                            placeholder="Resim Linki..."
-                                            className="absolute bottom-0 w-full text-xs bg-black/80 text-white p-1 text-center border-t border-gray-700 outline-none"
-                                            value={editForm.avatar}
-                                            onChange={(e) => setEditForm({ ...editForm, avatar: e.target.value })}
-                                            onClick={(e) => e.stopPropagation()}
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleAvatarUpload}
                                         />
                                     </div>
                                 )}
@@ -405,7 +471,10 @@ export default function PublicProfilePage() {
 
                             {/* Reading Goal (Only for Owner) */}
                             {isOwnProfile && (
-                                <ReadingGoalCard />
+                                <>
+                                    <ReadingGoalCard />
+                                    <DuelList userId={user.id} />
+                                </>
                             )}
 
                             <div className="bg-gray-900/30 p-6 rounded-xl border border-gray-800 space-y-4">

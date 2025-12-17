@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
-// GET: Get reading progress and settings for a book
+// GET: Get reading progress for a book
 export async function GET(req) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -15,20 +15,21 @@ export async function GET(req) {
     }
 
     try {
-        const progress = await prisma.readingProgress.findUnique({
+        const entry = await prisma.libraryEntry.findUnique({
             where: {
                 userId_bookId: {
                     userId: session.user.id,
                     bookId: parseInt(bookId)
                 }
-            }
+            },
+            include: { book: true }
         });
 
-        return NextResponse.json(progress || {
-            currentPage: 1,
-            totalPages: 0,
-            percentage: 0,
-            totalReadTime: 0,
+        return NextResponse.json({
+            currentPage: entry ? entry.progress : 0,
+            totalPages: entry?.book?.pages || 0,
+            percentage: (entry && entry.book?.pages) ? Math.round((entry.progress / entry.book.pages) * 100) : 0,
+            // Settings are no longer stored in DB, use local storage on client
             bgColor: '#0a0a0f',
             pageColor: '#ffffff',
             fontFamily: 'default',
@@ -41,7 +42,7 @@ export async function GET(req) {
     }
 }
 
-// POST: Update reading progress and settings
+// POST: Update reading progress
 export async function POST(req) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -50,25 +51,16 @@ export async function POST(req) {
         const {
             bookId,
             currentPage,
-            totalPages,
-            readTime,
             newPagesForXP, // New pages for XP (calculated client-side)
-            bgColor,
-            pageColor,
-            fontFamily,
-            fontSize,
-            darkMode,
-            textColor
         } = await req.json();
 
         if (!bookId) {
             return NextResponse.json({ error: 'Book ID required' }, { status: 400 });
         }
 
-        const percentage = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
-
-        // Update progress
-        const progress = await prisma.readingProgress.upsert({
+        // Update Library Entry
+        // Use upsert to create if not exists (add to library automatically)
+        const entry = await prisma.libraryEntry.upsert({
             where: {
                 userId_bookId: {
                     userId: session.user.id,
@@ -76,35 +68,18 @@ export async function POST(req) {
                 }
             },
             update: {
-                currentPage: currentPage || 1,
-                totalPages: totalPages || 0,
-                percentage,
-                lastReadAt: new Date(),
-                totalReadTime: { increment: readTime || 0 },
-                bgColor: bgColor || '#0a0a0f',
-                pageColor: pageColor || '#ffffff',
-                fontFamily: fontFamily || 'default',
-                fontSize: fontSize || 100,
-                darkMode: darkMode !== undefined ? darkMode : true,
-                textColor: textColor || '#000000'
+                progress: currentPage || 0,
+                status: 'READING' // Assuming updating progress means reading
             },
             create: {
                 userId: session.user.id,
                 bookId: parseInt(bookId),
-                currentPage: currentPage || 1,
-                totalPages: totalPages || 0,
-                percentage,
-                totalReadTime: readTime || 0,
-                bgColor: bgColor || '#0a0a0f',
-                pageColor: pageColor || '#ffffff',
-                fontFamily: fontFamily || 'default',
-                fontSize: fontSize || 100,
-                darkMode: darkMode !== undefined ? darkMode : true,
-                textColor: textColor || '#000000'
+                progress: currentPage || 0,
+                status: 'READING'
             }
         });
 
-        // Award XP only for genuinely new pages (passed from client)
+        // Award XP
         const xpToAward = newPagesForXP || 0;
         if (xpToAward > 0) {
             await prisma.user.update({
@@ -114,7 +89,8 @@ export async function POST(req) {
         }
 
         return NextResponse.json({
-            ...progress,
+            success: true,
+            progress: entry.progress,
             xpEarned: xpToAward
         });
     } catch (error) {

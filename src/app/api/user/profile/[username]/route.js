@@ -23,18 +23,22 @@ export async function GET(req, { params }) {
                 level: true,
                 xp: true,
                 createdAt: true,
-                readingProgress: {
+                // readingProgress removed, use library
+                library: {
+                    where: { status: { in: ['READ', 'READING'] } },
                     include: {
                         book: {
                             select: {
                                 id: true,
                                 title: true,
                                 cover: true,
+                                pages: true,
                                 category: true
                             }
                         }
                     },
-                    orderBy: { lastReadAt: 'desc' }
+                    orderBy: { addedAt: 'desc' },
+                    take: 10
                 },
                 favorites: true,
                 collections: {
@@ -64,12 +68,13 @@ export async function GET(req, { params }) {
             const potentialUsers = await prisma.user.findMany({
                 where: {
                     username: {
-                        contains: decodedUsername
+                        contains: decodedUsername // Remove mode: insensitive if not supported or use raw query
                     }
                 },
                 select: { id: true, username: true }
             });
 
+            // Manual filter for case-insensitive exact match
             const match = potentialUsers.find(u => u.username.toLowerCase() === decodedUsername.toLowerCase());
 
             if (match) {
@@ -86,7 +91,8 @@ export async function GET(req, { params }) {
                         xp: true,
                         points: true,
                         createdAt: true,
-                        readingProgress: {
+                        library: {
+                            where: { status: { in: ['READ', 'READING'] } },
                             include: {
                                 book: {
                                     select: {
@@ -97,7 +103,8 @@ export async function GET(req, { params }) {
                                     }
                                 }
                             },
-                            orderBy: { lastReadAt: 'desc' } // FIXED: Changed updatedAt to lastReadAt
+                            orderBy: { addedAt: 'desc' },
+                            take: 10
                         },
                         favorites: true,
                         collections: {
@@ -135,9 +142,12 @@ export async function GET(req, { params }) {
         }
 
         // Calculate Stats
-        const totalReadTime = user.readingProgress.reduce((sum, p) => sum + (p.totalReadTime || 0), 0);
-        const booksCompleted = user.readingProgress.filter(p => p.percentage >= 80).length;
-        const booksInProgress = user.readingProgress.filter(p => p.percentage > 0 && p.percentage < 80).length;
+        // ReadingProgress didn't track seconds reliably, LibraryEntry doesn't track seconds either yet.
+        // We will default totalReadTime to 0 or estimate based on pages read * standard speed if needed.
+        // For now 0.
+        const totalReadTime = 0;
+        const booksCompleted = user.library.filter(e => e.status === 'READ').length;
+        const booksInProgress = user.library.filter(e => e.status === 'READING').length;
 
         // Get friend count
         const friendCount = await prisma.friendship.count({
@@ -165,17 +175,18 @@ export async function GET(req, { params }) {
             }
         }
         // Recent Activity (Last 3 read books)
-        const recentActivity = user.readingProgress
+        // Recent Activity (Last 3 read books from library)
+        const recentActivity = user.library
             .slice(0, 3)
             .map(p => ({
                 id: p.book.id,
                 title: p.book.title,
                 cover: p.book.cover,
-                percentage: p.percentage,
-                lastRead: p.lastReadAt || p.updatedAt // Fallback just in case but lastReadAt is main
+                percentage: p.status === 'READ' ? 100 : (p.book.pages && p.progress ? Math.min(100, Math.round((p.progress / p.book.pages) * 100)) : 0),
+                lastRead: p.addedAt
             }));
 
-        const isOwnProfile = viewerId === user.id;
+        const isOwnProfile = viewerId && String(viewerId) === String(user.id);
 
         return NextResponse.json({
             success: true,

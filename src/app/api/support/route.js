@@ -3,60 +3,37 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rateLimit';
 
-// GET: List tickets (Admin sees all, User sees own)
-// POST: Create ticket
-export async function GET(request) {
-    try {
-        const session = await getSession();
-        if (!session) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-
-        const rules = session.user.role === 'ADMIN' ? {} : { userId: session.user.id };
-
-        // Include user details for admin
-        const tickets = await prisma.ticket.findMany({
-            where: rules,
-            include: {
-                user: { select: { username: true, email: true } },
-                _count: { select: { replies: true } }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-
-        return NextResponse.json({ success: true, tickets });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-}
-
 export async function POST(request) {
     try {
-        const session = await getSession();
-        if (!session) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-
         // Rate limiting
-        const rateLimitError = await checkRateLimit(request, 'interaction');
+        const rateLimitError = await checkRateLimit(request, 'standard');
         if (rateLimitError) return rateLimitError;
 
-        const { subject, message } = await request.json();
+        const session = await getSession();
+        const body = await request.json();
+        const { name, email, subject, message } = body;
 
-        // Input validation
-        if (!subject || typeof subject !== 'string' || subject.trim().length < 3 || subject.length > 200) {
-            return NextResponse.json({ success: false, message: 'Konu 3-200 karakter olmalı' }, { status: 400 });
-        }
-        if (!message || typeof message !== 'string' || message.trim().length < 10 || message.length > 5000) {
-            return NextResponse.json({ success: false, message: 'Mesaj 10-5000 karakter olmalı' }, { status: 400 });
+        // Validation
+        if (!name || !email || !subject || !message) {
+            return NextResponse.json({ success: false, error: 'Tüm alanları doldurunuz.' }, { status: 400 });
         }
 
-        const newTicket = await prisma.ticket.create({
+        // Save to DB (Using ContactMessage model)
+        await prisma.contactMessage.create({
             data: {
-                subject: subject.trim().slice(0, 200),
-                message: message.trim().slice(0, 5000),
-                userId: session.user.id
+                userId: session?.user?.id || null, // Optional link to user
+                name,
+                email,
+                subject,
+                message,
+                status: 'PENDING'
             }
         });
 
-        return NextResponse.json({ success: true, ticket: newTicket });
+        return NextResponse.json({ success: true, message: 'Mesajınız alındı!' });
+
     } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        console.error('Support error:', error);
+        return NextResponse.json({ success: false, error: 'Bir hata oluştu.' }, { status: 500 });
     }
 }

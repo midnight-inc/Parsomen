@@ -24,9 +24,11 @@ export default function CuratorLists() {
     const fetchCollections = async () => {
         try {
             const res = await fetch('/api/collections/public');
-            const data = await res.json();
-            if (data.success) {
-                setCollections(data.collections);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setCollections(data.collections);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch collections:', error);

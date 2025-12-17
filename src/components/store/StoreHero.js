@@ -98,8 +98,8 @@ export default function StoreHero() {
                     Günün Kitabı
                 </span>
 
-                <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight drop-shadow-lg line-clamp-2">
-                    {book.title}
+                <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight drop-shadow-lg" title={book.title}>
+                    {book.title?.length > 30 ? book.title.slice(0, 30) + '...' : book.title}
                 </h1>
 
                 <p className="text-lg text-gray-300 mb-2">

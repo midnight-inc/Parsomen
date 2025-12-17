@@ -6,7 +6,7 @@ import { FaCompass, FaStore, FaBook, FaUsers, FaGamepad, FaNewspaper, FaChartLin
 const MENU_ITEMS = [
     { name: 'Akış', path: '/feed', icon: <FaUsers /> },
     { name: 'Keşfet', path: '/', icon: <FaCompass /> },
-    { name: 'Mağaza', path: '/store', icon: <FaStore /> },
+    { name: 'Kitaplık', path: '/store', icon: <FaStore /> },
     { name: 'Kütüphanem', path: '/library', icon: <FaBook /> },
     { name: 'Gruplar', path: '/groups', icon: <FaUsers /> },
     { name: 'Etkinlikler', path: '/events', icon: <FaGamepad /> },
@@ -39,8 +39,8 @@ export default function Sidebar() {
                             key={item.path}
                             href={item.path}
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 ${isActive
-                                    ? 'bg-white/10 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-white/10'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                ? 'bg-white/10 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-white/10'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             <span className="text-lg">{item.icon}</span>

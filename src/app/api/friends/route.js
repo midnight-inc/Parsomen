@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { updateQuestProgress } from '@/lib/gamification';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { decrypt } from '@/lib/auth';
@@ -187,6 +188,15 @@ export async function PUT(req) {
                     }
                 })
             ]);
+
+            // TRIGGER QUEST: ADD_FRIEND
+            try {
+                await updateQuestProgress(session.userId, 'ADD_FRIEND', 1);
+                await updateQuestProgress(friendship.userId, 'ADD_FRIEND', 1);
+            } catch (e) {
+                console.error("Quest update failed", e);
+            }
+
             return NextResponse.json({ success: true, message: 'Friend added' });
         } else {
             await prisma.friendship.delete({ where: { id: requestId } });

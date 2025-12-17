@@ -55,8 +55,9 @@ export function confirm({
                 variant
             });
         } else {
-            // Fallback to native confirm if modal not mounted
-            resolve(window.confirm(message));
+            // Fallback: If modal is not mounted, verify is failed secure
+            console.warn('Confirm modal not mounted');
+            resolve(false);
         }
     });
 }

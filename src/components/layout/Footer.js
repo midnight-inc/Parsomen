@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { FaGithub, FaTwitter, FaDiscord, FaHeart } from 'react-icons/fa';
+import EasterEgg from '../gamification/EasterEgg';
 
 export default function Footer() {
     return (
@@ -34,7 +35,7 @@ export default function Footer() {
                     <div>
                         <h4 className="text-white font-bold mb-4">Hızlı Linkler</h4>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href="/store" className="text-gray-400 hover:text-white transition-colors">Mağaza</Link></li>
+                            <li><Link href="/store" className="text-gray-400 hover:text-white transition-colors">Kitaplık</Link></li>
                             <li><Link href="/library" className="text-gray-400 hover:text-white transition-colors">Kütüphanem</Link></li>
                             <li><Link href="/store/editor-choice" className="text-gray-400 hover:text-white transition-colors">Editörün Seçimi</Link></li>
                             <li><Link href="/leaderboard" className="text-gray-400 hover:text-white transition-colors">Sıralama</Link></li>
@@ -59,6 +60,7 @@ export default function Footer() {
                     </p>
                     <p className="text-gray-500 text-sm flex items-center gap-1">
                         Made with <FaHeart className="text-red-500" /> in Turkey
+                        <EasterEgg id="footer_egg" icon="ghost" className="opacity-10 hover:opacity-100 ml-2" />
                     </p>
                 </div>
             </div>

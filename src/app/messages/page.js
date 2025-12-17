@@ -4,16 +4,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaEnvelope, FaPaperPlane, FaSearch, FaInbox, FaSpinner, FaPlus, FaTimes, FaSmile, FaImage, FaFilePdf } from 'react-icons/fa';
+import { IoCheckmarkDone, IoCheckmark } from 'react-icons/io5';
 import toast from 'react-hot-toast';
 
-// Extended emoji list
-const EMOJI_CATEGORIES = {
-    'Yüzler': ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐'],
-    'Jestler': ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '💪'],
-    'Kalpler': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'],
-    'Semboller': ['⭐', '🌟', '✨', '💫', '🔥', '💥', '💯', '✅', '❌', '❓', '❗', '💬', '💭', '🎵', '🎶', '📚', '📖', '📕', '📗', '📘', '📙', '📔', '📒', '📓', '📰', '🔖', '🏷️'],
-    'Aktiviteler': ['🎉', '🎊', '🎁', '🎈', '🎂', '🍰', '🥂', '🍾', '☕', '🍵', '🍺', '🍻', '🥤', '🎮', '🎯', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧', '🎹', '🎸', '🎺', '🎻', '🥁']
-};
+import EmojiPicker from 'emoji-picker-react';
 
 export default function MessagesPage() {
     const { user, loading: authLoading } = useAuth();
@@ -188,14 +182,31 @@ export default function MessagesPage() {
 
         setSending(true);
         try {
-            const payload = {
-                receiverId: parseInt(selectedConv.partnerId, 10), // Ensure it's a number
-                content: newMessage.trim() || null,
-                mediaType: selectedMedia?.type || null,
-                mediaUrl: selectedMedia?.url || null
-            };
+            let mediaUrl = selectedMedia?.url;
+            let mediaType = selectedMedia?.type;
 
-            console.log('Sending message:', payload);
+            // Upload file if it's a raw file (not a GIF or already uploaded)
+            if (selectedMedia?.file) {
+                const formData = new FormData();
+                formData.append('file', selectedMedia.file);
+
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!uploadRes.ok) throw new Error('Upload failed');
+
+                const uploadData = await uploadRes.json();
+                mediaUrl = uploadData.url;
+            }
+
+            const payload = {
+                receiverId: parseInt(selectedConv.partnerId, 10),
+                content: newMessage.trim() || null,
+                mediaType: mediaType || null,
+                mediaUrl: mediaUrl || null
+            };
 
             const res = await fetch('/api/messages', {
                 method: 'POST',
@@ -204,7 +215,6 @@ export default function MessagesPage() {
             });
 
             const data = await res.json();
-            console.log('Response:', data);
 
             if (data.success) {
                 setMessages(prev => [...prev, data.message]);
@@ -216,14 +226,16 @@ export default function MessagesPage() {
             }
         } catch (error) {
             console.error('Send error:', error);
-            toast.error('Bağlantı hatası');
+            toast.error('Gönderim hatası: ' + error.message);
         } finally {
             setSending(false);
         }
     };
 
-    const handleEmojiSelect = (emoji) => {
-        setNewMessage(prev => prev + emoji);
+    const handleEmojiClick = (emojiData) => {
+        setNewMessage(prev => prev + emojiData.emoji);
+        // Optional: close picker after select or keep open
+        // setShowEmojiPicker(false);
     };
 
     const handleGifSelect = (gif) => {
@@ -258,7 +270,8 @@ export default function MessagesPage() {
         setSelectedMedia({
             type: isPdf ? 'pdf' : 'image',
             url: blobUrl,
-            name: file.name
+            name: file.name,
+            file: file // Store distinct file object for upload
         });
     };
 
@@ -302,15 +315,15 @@ export default function MessagesPage() {
     const displayGifs = gifSearch.length >= 2 ? gifs : trendingGifs;
 
     return (
-        <div className="min-h-screen pt-20 pb-6 px-4 sm:px-8 max-w-7xl mx-auto">
-            <div className="mb-3">
-                <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+        <div className="min-h-screen pt-14 pb-4 px-4 sm:px-8 max-w-7xl mx-auto">
+            <div className="mb-2">
+                <h1 className="text-xl font-bold text-white flex items-center gap-2">
                     <FaEnvelope className="text-purple-400" />
                     Mesajlar
                 </h1>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-140px)]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-100px)]">
                 {/* Conversations List */}
                 <div className="lg:col-span-1 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col">
                     <div className="p-4 border-b border-white/10 flex items-center justify-between">
@@ -413,7 +426,18 @@ export default function MessagesPage() {
                                         <div key={msg.id} className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}>
                                             <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl ${msg.senderId === user?.id ? 'bg-purple-600/40 text-white rounded-tr-sm' : 'bg-white/10 text-gray-200 rounded-tl-sm'}`}>
                                                 {renderMessageContent(msg)}
-                                                <p className="text-[10px] text-gray-400 mt-1 text-right">{formatTime(msg.createdAt)}</p>
+                                                <div className="flex items-center justify-end gap-1 mt-1">
+                                                    <p className="text-[10px] text-gray-400">{formatTime(msg.createdAt)}</p>
+                                                    {msg.senderId === user?.id && (
+                                                        <span title={msg.status === 'READ' || msg.read ? 'Okundu' : 'Teslim Edildi'}>
+                                                            {msg.status === 'READ' || msg.read ? (
+                                                                <IoCheckmarkDone className="text-blue-400 text-sm" />
+                                                            ) : (
+                                                                <IoCheckmark className="text-gray-400 text-sm" />
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     ))
@@ -437,43 +461,53 @@ export default function MessagesPage() {
                             )}
 
                             {showEmojiPicker && (
-                                <div className="px-4 py-3 border-t border-white/10 bg-white/5">
-                                    <div className="flex gap-2 mb-2 overflow-x-auto pb-1">
-                                        {Object.keys(EMOJI_CATEGORIES).map(cat => (
-                                            <button key={cat} onClick={() => setSelectedEmojiCategory(cat)} className={`px-3 py-1 rounded-full text-xs whitespace-nowrap ${selectedEmojiCategory === cat ? 'bg-purple-500 text-white' : 'bg-white/10 text-gray-400'}`}>{cat}</button>
-                                        ))}
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
-                                        {EMOJI_CATEGORIES[selectedEmojiCategory].map((emoji, i) => (
-                                            <button key={i} onClick={() => handleEmojiSelect(emoji)} className="text-xl hover:scale-125 transition-transform p-1">{emoji}</button>
-                                        ))}
+                                <div className="absolute bottom-20 left-4 z-50">
+                                    <div className="fixed inset-0" onClick={() => setShowEmojiPicker(false)}></div>
+                                    <div className="relative shadow-2xl rounded-xl overflow-hidden border border-white/10">
+                                        <EmojiPicker
+                                            onEmojiClick={handleEmojiClick}
+                                            theme="dark"
+                                            searchDisabled={false}
+                                            width={320}
+                                            height={400}
+                                            lazyLoadEmojis={true}
+                                        />
                                     </div>
                                 </div>
                             )}
 
                             {showGifPicker && (
-                                <div className="px-4 py-3 border-t border-white/10 bg-white/5">
+                                <div className="absolute bottom-20 left-16 z-50 w-80 bg-gray-900 border border-white/10 rounded-xl shadow-2xl p-3 animate-in slide-in-from-bottom-2 fade-in">
+                                    <div className="fixed inset-0 -z-10" onClick={() => setShowGifPicker(false)}></div>
+                                    <h3 className="text-white text-sm font-bold mb-2 flex items-center justify-between">
+                                        <span>GIF Ara</span>
+                                        <button onClick={() => setShowGifPicker(false)} className="text-gray-400 hover:text-white"><FaTimes /></button>
+                                    </h3>
                                     <input
                                         type="text"
                                         value={gifSearch}
                                         onChange={(e) => setGifSearch(e.target.value)}
-                                        placeholder="GIF ara... (Giphy)"
-                                        className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 mb-2 text-sm"
+                                        placeholder="Ara..."
+                                        className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 mb-3 text-sm focus:border-purple-500 outline-none"
                                         autoFocus
                                     />
-                                    <p className="text-xs text-gray-500 mb-2">{gifSearch.length >= 2 ? 'Arama Sonuçları' : 'Trend GIF\'ler'}</p>
+
                                     {loadingGifs ? (
-                                        <div className="flex justify-center py-4"><FaSpinner className="animate-spin text-purple-500" /></div>
+                                        <div className="flex justify-center py-8"><FaSpinner className="animate-spin text-purple-500 text-xl" /></div>
                                     ) : (
-                                        <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                                        <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 pr-1">
                                             {displayGifs.map(gif => (
-                                                <button key={gif.id} onClick={() => handleGifSelect(gif)} className="hover:opacity-80 rounded overflow-hidden">
-                                                    <img src={gif.images.fixed_height_small.url} alt="" className="w-full h-16 object-cover" />
+                                                <button key={gif.id} onClick={() => handleGifSelect(gif)} className="hover:opacity-80 rounded-lg overflow-hidden relative group aspect-video bg-gray-800">
+                                                    <img src={gif.images.fixed_height_small.url} alt="" className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <FaPlus className="text-white text-xs" />
+                                                    </div>
                                                 </button>
                                             ))}
+                                            {displayGifs.length === 0 && <p className="col-span-3 text-center text-gray-500 text-xs py-4">Sonuç bulunamadı</p>}
                                         </div>
                                     )}
-                                    <p className="text-[10px] text-gray-600 mt-2 text-center">Powered by GIPHY</p>
+                                    <p className="text-[10px] text-gray-600 mt-2 text-right">Powered by GIPHY</p>
                                 </div>
                             )}
 

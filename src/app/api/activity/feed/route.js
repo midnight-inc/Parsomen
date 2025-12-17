@@ -5,40 +5,39 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        // Users active in the last 5 minutes
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        // Users active in the last 15 minutes (extended time window)
+        const fiveMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
-        const activeReaders = await prisma.readingProgress.findMany({
+        const activities = await prisma.userActivity.findMany({
             where: {
-                lastReadAt: {
-                    gt: fiveMinutesAgo
-                }
+                createdAt: { gt: fiveMinutesAgo },
+                type: { in: ['STARTED_READING', 'FINISHED_READING', 'LIBRARY_UPDATE', 'REVIEW'] },
+                targetId: { not: null }
             },
             include: {
-                user: {
-                    select: {
-                        username: true,
-                        role: true
-                    }
-                },
-                book: {
-                    select: {
-                        title: true
-                    }
-                }
+                user: { select: { username: true } }
             },
-            orderBy: {
-                lastReadAt: 'desc'
-            },
-            take: 10 // Show last 10 active users
+            orderBy: { createdAt: 'desc' },
+            take: 10
         });
 
+        // Collect Book IDs
+        const bookIds = [...new Set(activities.map(a => a.targetId))];
+        const books = await prisma.book.findMany({
+            where: { id: { in: bookIds } },
+            select: { id: true, title: true }
+        });
+
+        // Map books for quick lookup
+        const bookMap = {};
+        books.forEach(b => bookMap[b.id] = b.title);
+
         // Format for ticker
-        const feed = activeReaders.map(record => ({
-            user: record.user.username,
-            action: 'okuyor', // Since we track reading progress, action is always reading
-            book: record.book.title,
-            timestamp: record.lastReadAt
+        const feed = activities.map(act => ({
+            user: act.user.username,
+            action: act.type === 'FINISHED_READING' ? 'bitirdi' : 'okuyor',
+            book: bookMap[act.targetId] || 'bir kitap',
+            timestamp: act.createdAt
         }));
 
         return NextResponse.json({ success: true, feed });

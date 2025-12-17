@@ -6,6 +6,9 @@ import PostCard from '@/components/feed/PostCard';
 import RecentMessages from '@/components/feed/RecentMessages';
 import SuggestedUsers from '@/components/feed/SuggestedUsers';
 import SuggestedBooks from '@/components/feed/SuggestedBooks';
+import Link from 'next/link';
+import DailyTrivia from '@/components/gamification/DailyTrivia';
+import QuestBoard from '@/components/gamification/QuestBoard';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +36,11 @@ async function getFeedData(userId) {
                     select: {
                         id: true,
                         username: true,
-                        avatar: true
+                        avatar: true,
+                        inventory: {
+                            where: { equipped: true, item: { type: 'FRAME' } },
+                            include: { item: { select: { image: true } } }
+                        }
                     }
                 },
                 book: {
@@ -152,7 +159,10 @@ export default async function FeedPage() {
                         ) : (
                             <div className="text-center py-20 bg-gray-900/20 rounded-xl border border-gray-800 border-dashed">
                                 <p className="text-gray-400 mb-2">Henüz hiç gönderi yok.</p>
-                                <p className="text-gray-600 text-sm">Arkadaşlarını ekle veya ilk gönderini paylaş!</p>
+                                <p className="text-gray-600 text-sm mb-4">Arkadaşlarını ekle veya ilk gönderini paylaş!</p>
+                                <Link href="/friends" className="inline-block px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold transition-colors">
+                                    Arkadaş Bul
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -160,6 +170,8 @@ export default async function FeedPage() {
 
                 {/* RIGHT COLUMN: Suggestions */}
                 <div className="hidden md:block space-y-6 sticky top-24 h-fit">
+                    <QuestBoard />
+                    <DailyTrivia />
                     <SuggestedUsers />
                     <SuggestedBooks />
                 </div>

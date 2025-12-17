@@ -3,8 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { FaBell, FaEnvelope, FaSearch, FaUserCircle, FaGamepad, FaBox, FaTrophy, FaHistory, FaUsers, FaNewspaper, FaCog, FaSignOutAlt, FaDownload } from 'react-icons/fa';
+import { FaBell, FaEnvelope, FaSearch, FaUserCircle, FaGamepad, FaBox, FaTrophy, FaHistory, FaUsers, FaNewspaper, FaCog, FaSignOutAlt, FaDownload, FaFire } from 'react-icons/fa';
 import UniversalSearch from './UniversalSearch';
+import UserAvatar from '@/components/ui/UserAvatar';
 
 // --- Small System Menu Data ---
 const SYSTEM_MENUS = {
@@ -42,7 +43,7 @@ const NAV_MENUS = (username) => {
             href: '/feed',
             items: []
         },
-        'MAĞAZA': {
+        'KİTAPLIK': {
             href: '/store',
             items: ['Öne Çıkanlar', 'Editör Seçimi', 'Hediye Listesi', 'Puan Dükkanı', 'Haberler', 'İstatistikler']
         },
@@ -72,18 +73,70 @@ export default function SteamHeader() {
     const [activeSysMenu, setActiveSysMenu] = useState(null);
     const [activeNavMenu, setActiveNavMenu] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Notifications State
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [isMarathon, setIsMarathon] = useState(false);
+
+    useEffect(() => {
+        const checkMarathon = () => {
+            const now = new Date();
+            // Local Time Check (Since user is in TR)
+            // or use UTC+3 logic: const hour = (now.getUTCHours() + 3) % 24;
+            // Let's rely on local system time as most users will be local for allowed hours
+            const hour = now.getHours();
+            setIsMarathon(hour === 20); // Starts at 20:00, ends at 21:00
+        };
+
+        checkMarathon();
+        const timer = setInterval(checkMarathon, 60000);
+        return () => clearInterval(timer);
+    }, []);
+
     const pathname = usePathname();
 
     // Close menus on click outside
     useEffect(() => {
-        const handleClick = () => { setActiveSysMenu(null); setActiveNavMenu(null); };
+        const handleClick = () => {
+            setActiveSysMenu(null);
+            setActiveNavMenu(null);
+            setShowNotifications(false); // Close notifs too
+        };
         window.addEventListener('click', handleClick);
         return () => window.removeEventListener('click', handleClick);
     }, []);
 
+    // Fetch Notifications Polling
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchNotifications = async () => {
+            try {
+                const res = await fetch('/api/notifications');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        setNotifications(data.notifications);
+                        setUnreadCount(data.unreadCount);
+                    }
+                }
+            } catch (e) {
+                // Silent error
+            }
+        };
+
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 15000); // Check every 15s
+
+        return () => clearInterval(interval);
+    }, [user]);
+
     // Close mobile menu on route change
     useEffect(() => {
         setMobileMenuOpen(false);
+        setShowNotifications(false);
     }, [pathname]);
 
     const handleSysClick = (e, menu) => {
@@ -116,6 +169,14 @@ export default function SteamHeader() {
                             <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">PARSOMEN</span>
                         </Link>
 
+                        {/* Event Badge: Reading Marathon */}
+                        {isMarathon && (
+                            <div className="hidden xl:flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400/50">
+                                <FaFire className="animate-bounce text-yellow-300" />
+                                <span className="tracking-in-expand">OKUMA MARATONU (2x XP)</span>
+                            </div>
+                        )}
+
                         {/* Desktop Menus */}
                         <div className="hidden lg:flex items-center gap-2">
                             {Object.entries(navMenus).map(([label, data]) => (
@@ -134,7 +195,7 @@ export default function SteamHeader() {
                                     </Link>
 
                                     {/* Quick Hover Dropdown - Desktop */}
-                                    {(data.items.length > 0 || (label !== 'MAĞAZA' && label !== 'KÜTÜPHANE' && label !== 'TOPLULUK' && label !== 'AKIŞ')) && (
+                                    {(data.items.length > 0 || (label !== 'KİTAPLIK' && label !== 'KÜTÜPHANE' && label !== 'TOPLULUK' && label !== 'AKIŞ')) && (
                                         <div className={`absolute top-full left-0 pt-4 min-w-[240px] transition-all duration-200 ease-out origin-top-left overflow-hidden z-50 ${activeNavMenu === label ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
                                             <div className="bg-[#0a0a0a]/95 backdrop-blur-xl border border-[#333] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 space-y-1">
                                                 {data.items.map((item, idx) => {
@@ -172,7 +233,7 @@ export default function SteamHeader() {
                                                     );
                                                 })}
                                                 {/* User Dropdown Links */}
-                                                {label !== 'MAĞAZA' && label !== 'KÜTÜPHANE' && label !== 'TOPLULUK' && (
+                                                {label !== 'KİTAPLIK' && label !== 'KÜTÜPHANE' && label !== 'TOPLULUK' && (
                                                     <div className="pt-2 mt-2 border-t border-[#222]">
                                                         {user?.role === 'ADMIN' && (
                                                             <Link href="/admin" className="block px-4 py-3 text-sm font-medium text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors">
@@ -211,21 +272,86 @@ export default function SteamHeader() {
                             <Link href="/messages" className="hover:text-white relative transition-colors hidden sm:block">
                                 <FaEnvelope />
                             </Link>
-                            <button className="hover:text-white relative transition-colors">
+                            <button
+                                className="hover:text-white relative transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowNotifications(!showNotifications);
+                                    if (!showNotifications && unreadCount > 0) {
+                                        // Mark as read locally immediately, API call in background
+                                        setUnreadCount(0);
+                                        fetch('/api/notifications', { method: 'PUT', body: '{}' });
+                                    }
+                                }}
+                            >
                                 <FaBell />
-                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full"></span>
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full text-[10px] flex items-center justify-center text-white border-2 border-black">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
                             </button>
+
+                            {/* Notifications Dropdown */}
+                            {showNotifications && (
+                                <div
+                                    className="absolute top-full right-0 mt-4 w-80 bg-[#0a0a0a] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-[60] animate-in fade-in slide-in-from-top-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="p-3 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
+                                        <span className="font-bold text-white text-sm">Bildirimler</span>
+                                        <button
+                                            onClick={() => setShowNotifications(false)}
+                                            className="text-gray-500 hover:text-white text-xs"
+                                        >
+                                            Kapat
+                                        </button>
+                                    </div>
+                                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                                        {notifications.length > 0 ? (
+                                            notifications.map(notif => (
+                                                <Link
+                                                    key={notif.id}
+                                                    href={notif.link || '#'}
+                                                    onClick={() => setShowNotifications(false)}
+                                                    className={`block p-3 hover:bg-gray-800/50 border-b border-gray-800/50 transition-colors ${!notif.read ? 'bg-purple-900/10' : ''}`}
+                                                >
+                                                    <div className="flex gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden shrink-0 mt-1">
+                                                            {notif.fromUser?.avatar ? (
+                                                                <img src={notif.fromUser.avatar} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-gray-600 text-[10px] text-white font-bold">
+                                                                    {notif.fromUser?.username?.[0] || '?'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-300 mb-1">{notif.message}</p>
+                                                            <p className="text-[10px] text-gray-500">
+                                                                {new Date(notif.createdAt).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ))
+                                        ) : (
+                                            <div className="p-8 text-center text-gray-500 text-sm">
+                                                Bildirim yok
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Avatar */}
                         <Link href={user ? `/profile/${user.username}` : '/login'} className="flex items-center gap-3 group cursor-pointer pl-2 md:pl-4 md:border-l border-gray-800">
-                            {user?.avatar ? (
-                                <img src={user.avatar} alt={user.username} className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-gray-700" />
-                            ) : (
-                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-900 flex items-center justify-center text-sm md:text-lg font-bold text-white border-2 border-gray-700">
-                                    {user?.username?.charAt(0).toUpperCase() || '?'}
-                                </div>
-                            )}
+                            <UserAvatar
+                                user={user}
+                                size={40}
+                                className="border-2 border-gray-700 md:w-10 md:h-10" // md classes might need manual override or passed via size prop logic if made responsive
+                            />
                         </Link>
                     </div>
                 </div>

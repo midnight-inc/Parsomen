@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { FaGem, FaCrown, FaBox, FaFire, FaClock, FaShoppingCart, FaStar, FaSpinner } from 'react-icons/fa';
+import { FaGem, FaCrown, FaBox, FaFire, FaClock, FaShoppingCart, FaStar, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import DailySpinWheel from '@/components/gamification/DailySpinWheel';
 import Button from '@/components/ui/Button';
@@ -71,6 +71,27 @@ export default function PointsShopPage() {
             }
         } catch (error) {
             toast.error('Bağlantı hatası');
+        }
+    };
+
+    const handleEquip = async (itemId) => {
+        try {
+            const res = await fetch('/api/store/equip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Çerçeve güncellendi!');
+                fetchData(); // Refresh inventory
+                // Ideally reload user context too to see changes immediately in navbar
+                window.location.reload(); // Hard reload for now to reflect in header
+            } else {
+                toast.error(data.error);
+            }
+        } catch (e) {
+            toast.error('Hata oluştu');
         }
     };
 
@@ -192,32 +213,60 @@ export default function PointsShopPage() {
                             <h2 className="text-2xl font-bold">Profil Çerçeveleri</h2>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            {frames.map(item => (
-                                <div key={item.id} className={`p-4 rounded-xl border ${rarityColors[item.rarity]} hover:scale-105 transition-all cursor-pointer ${isOwned(item.id) ? 'ring-2 ring-green-500' : ''}`}>
-                                    <div className="text-5xl text-center mb-4">{item.image}</div>
-                                    <div className="text-center">
-                                        <div className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mb-1 ${item.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : item.rarity === 'EPIC' ? 'bg-purple-500 text-white' : item.rarity === 'RARE' ? 'bg-blue-500 text-white' : 'bg-gray-600 text-white'}`}>
-                                            {rarityLabels[item.rarity]}
+                            {frames.map(item => {
+                                const owned = inventory.find(inv => inv.itemId === item.id);
+                                const isEquipped = owned?.equipped;
+
+                                return (
+                                    <div key={item.id} className={`relative p-6 rounded-xl border border-gray-800 bg-gray-900/50 flex flex-col items-center hover:border-gray-600 transition-all ${isEquipped ? 'ring-2 ring-indigo-500 shadow-lg shadow-indigo-500/20' : ''}`}>
+                                        {/* Preview */}
+                                        <div className="relative mb-4">
+                                            <div className={`w-24 h-24 rounded-full border-4 ${item.image} flex items-center justify-center bg-black overflow-hidden`}>
+                                                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-xs">
+                                                    Avatar
+                                                </div>
+                                            </div>
+                                            {isEquipped && (
+                                                <div className="absolute -bottom-2 -right-2 bg-indigo-500 text-white p-1 rounded-full shadow">
+                                                    <FaCheckCircle className="text-sm" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <h4 className="font-bold text-white text-sm">{item.name}</h4>
-                                        {isOwned(item.id) ? (
-                                            <div className="text-green-500 text-sm mt-2 font-bold">✓ Sahip</div>
-                                        ) : (
-                                            <Button
-                                                onClick={() => handlePurchase(item.id)}
-                                                disabled={userPoints < item.price}
-                                                size="sm"
-                                                variant="ghost"
-                                                fullWidth
-                                                className="mt-2 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10"
-                                                icon={<FaGem className="text-xs" />}
-                                            >
-                                                {item.price}
-                                            </Button>
-                                        )}
+
+                                        <div className="text-center w-full">
+                                            <h4 className="font-bold text-white text-sm mb-1">{item.name}</h4>
+                                            <div className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mb-3 ${item.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : item.rarity === 'EPIC' ? 'bg-purple-500 text-white' : item.rarity === 'RARE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                                                {rarityLabels[item.rarity]}
+                                            </div>
+
+                                            {owned ? (
+                                                <Button
+                                                    onClick={() => handleEquip(item.id)}
+                                                    disabled={isEquipped}
+                                                    size="sm"
+                                                    variant={isEquipped ? 'secondary' : 'success'}
+                                                    fullWidth
+                                                    className={`text-xs ${isEquipped ? 'opacity-70 cursor-default' : ''}`}
+                                                >
+                                                    {isEquipped ? 'Kullanılıyor' : 'Kullan'}
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    onClick={() => handlePurchase(item.id)}
+                                                    disabled={userPoints < item.price}
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    fullWidth
+                                                    className="text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 border border-yellow-500/30"
+                                                    icon={<FaGem className="text-xs" />}
+                                                >
+                                                    {item.price} Puan
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </section>
                 )}

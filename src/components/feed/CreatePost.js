@@ -3,8 +3,12 @@ import { useState } from 'react';
 import { FaImage, FaBook, FaMusic, FaPaperPlane, FaTimes, FaSearch } from 'react-icons/fa';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
-export default function CreatePost({ onPostCreated, user }) {
+export default function CreatePost({ onPostCreated, user: propUser }) {
+    const { user: authUser } = useAuth();
+    const user = authUser || propUser;
+
     const [content, setContent] = useState('');
     const [image, setImage] = useState('');
     const [book, setBook] = useState(null);
@@ -15,6 +19,41 @@ export default function CreatePost({ onPostCreated, user }) {
     const [showBookSearch, setShowBookSearch] = useState(false);
     const [bookSearchQuery, setBookSearchQuery] = useState('');
     const [bookResults, setBookResults] = useState([]);
+
+    // Mention Suggestions
+    const [suggestions, setSuggestions] = useState([]);
+
+    const fetchSuggestions = async (query) => {
+        try {
+            const res = await fetch(`/api/users/suggestions?q=${query}`);
+            const data = await res.json();
+            setSuggestions(data.users || []);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleMentionClick = (username) => {
+        // Replace last word starting with @ with @username
+        const words = content.split(/([\s\n]+)/); // split by whitespace but keep delimiters
+        // Find last word index that starts with @
+        let lastIndex = -1;
+        for (let i = words.length - 1; i >= 0; i--) {
+            if (words[i].startsWith('@') && !words[i].includes(' ')) {
+                lastIndex = i;
+                break;
+            }
+        }
+
+        if (lastIndex !== -1) {
+            words[lastIndex] = `@${username} `;
+            setContent(words.join(''));
+        } else {
+            // Fallback
+            setContent(content + `@${username} `);
+        }
+        setSuggestions([]);
+    };
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -87,13 +126,52 @@ export default function CreatePost({ onPostCreated, user }) {
                     </div>
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 relative">
                     <textarea
                         value={content}
-                        onChange={e => setContent(e.target.value)}
+                        onChange={e => {
+                            const val = e.target.value;
+                            setContent(val);
+
+                            // Mention Logic
+                            const lastWord = val.split(/[\s\n]+/).pop();
+                            if (lastWord && lastWord.startsWith('@')) {
+                                const query = lastWord.substring(1);
+                                if (query.length === 0) {
+                                    // Fetch strict suggestions (top friends)
+                                    fetchSuggestions('');
+                                } else {
+                                    // Search
+                                    fetchSuggestions(query);
+                                }
+                            } else {
+                                setSuggestions([]);
+                            }
+                        }}
                         placeholder="Neler düşünüyorsun?"
                         className="w-full bg-transparent text-white placeholder-gray-500 outline-none resize-none min-h-[50px] text-lg pt-2"
                     />
+
+                    {/* Mention Suggestions */}
+                    {suggestions.length > 0 && (
+                        <div className="absolute z-[100] left-0 bottom-full mb-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto animate-in fade-in slide-in-from-bottom-2">
+                            {suggestions.map(u => (
+                                <button
+                                    key={u.id}
+                                    onClick={() => handleMentionClick(u.username)}
+                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-800 transition-colors text-left border-b border-gray-800/50 last:border-0"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden relative">
+                                        <Image src={u.avatar || '/default-avatar.png'} alt={u.username} fill className="object-cover" />
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-bold text-sm">{u.username}</p>
+                                    </div>
+                                    <span className="ml-auto text-xs text-gray-500">Bahset</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Previews */}
                     {image && (
