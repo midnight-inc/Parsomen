@@ -360,8 +360,8 @@ export default function MessagesPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-100px)]">
-                {/* Conversations List */}
-                <div className="lg:col-span-1 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                {/* Conversations List - Hidden on mobile if chat selected */}
+                <div className={`lg:col-span-1 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col ${selectedConv ? 'hidden lg:flex' : 'flex'}`}>
                     <div className="p-4 border-b border-white/10 flex items-center justify-between">
                         <h2 className="font-bold text-white">Sohbetler</h2>
                         <button
@@ -441,11 +441,15 @@ export default function MessagesPage() {
                     </div>
                 </div>
 
-                {/* Chat Area */}
-                <div className="lg:col-span-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                {/* Chat Area - Hidden on mobile if no chat selected */}
+                <div className={`lg:col-span-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col ${!selectedConv ? 'hidden lg:flex' : 'flex'}`}>
                     {selectedConv ? (
                         <>
                             <div className="p-4 border-b border-white/10 flex items-center gap-3">
+                                {/* Back Button for Mobile */}
+                                <button onClick={() => setSelectedConv(null)} className="lg:hidden text-gray-400 hover:text-white mr-2">
+                                    <FaTimes />
+                                </button>
                                 <Link href={`/profile/${selectedConv.partner.username}`} className="flex items-center gap-3 hover:opacity-80">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600/30 to-blue-600/30 border border-purple-500/30 flex items-center justify-center overflow-hidden">
                                         {selectedConv.partner.avatar ? <img src={selectedConv.partner.avatar} alt="" className="w-full h-full object-cover" /> : selectedConv.partner.username?.charAt(0).toUpperCase()}
