@@ -91,7 +91,8 @@ export async function POST(request) {
         console.error('[Upload] Error:', error);
         return NextResponse.json({
             success: false,
-            error: 'Sunucu hatası: Dosya buluta yüklenemedi.'
+            error: `Sunucu hatası: ${error.message || 'Dosya buluta yüklenemedi.'}`,
+            details: error
         }, { status: 500 });
     }
 }
