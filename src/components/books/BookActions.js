@@ -18,6 +18,10 @@ export default function BookActions({ bookId, userId: propUserId }) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Library states
+    const [libraryStatus, setLibraryStatus] = useState(null); // null, 'WANT_TO_READ', 'READING', 'READ'
+    const [showLibraryMenu, setShowLibraryMenu] = useState(false);
+
     // Collection states
     const [collections, setCollections] = useState([]);
     const [showCollectionMenu, setShowCollectionMenu] = useState(false);
@@ -30,6 +34,53 @@ export default function BookActions({ bookId, userId: propUserId }) {
             setIsFavorite(isInFavorites(bookId));
         }
     }, [bookId, userId, isInFavorites, favorites]);
+
+    // Check library status on load
+    useEffect(() => {
+        if (userId) {
+            checkLibraryStatus();
+        }
+    }, [bookId, userId]);
+
+    const checkLibraryStatus = async () => {
+        try {
+            const res = await fetch('/api/library');
+            const data = await res.json();
+            if (data.success) {
+                const entry = data.entries.find(e => e.bookId === bookId);
+                if (entry) setLibraryStatus(entry.status);
+            }
+        } catch (e) { }
+    };
+
+    const handleLibraryAction = async (status) => {
+        if (!userId) {
+            toast.error('Giriş yapmalısınız');
+            return;
+        }
+        try {
+            const res = await fetch('/api/library', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookId, status })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setLibraryStatus(status);
+                const statusLabels = {
+                    'WANT_TO_READ': 'Okumak İstiyorum',
+                    'READING': 'Okuyorum',
+                    'READ': 'Okudum'
+                };
+                toast.success(`Kütüphaneye eklendi: ${statusLabels[status]} 📚`);
+                setShowLibraryMenu(false);
+            } else {
+                toast.error(data.error || 'İşlem başarısız');
+            }
+        } catch (e) {
+            toast.error('Bağlantı hatası');
+        }
+    };
 
     // Fetch collections when menu is opened
     useEffect(() => {
@@ -154,13 +205,40 @@ export default function BookActions({ bookId, userId: propUserId }) {
             <div className="grid grid-cols-4 gap-3 h-12">
 
                 {/* 1. Add to Library (BookOpen) */}
-                <Button
-                    title="Kütüphaneye Ekle"
-                    variant="secondary"
-                    className="w-full h-full"
-                    fullWidth
-                    icon={<FaBookOpen size={20} />}
-                />
+                <div className="relative w-full h-full">
+                    <Button
+                        onClick={() => {
+                            if (!userId) toast.error('Giriş yapmalısınız');
+                            else setShowLibraryMenu(!showLibraryMenu);
+                        }}
+                        title={libraryStatus ? 'Kütüphanede' : 'Kütüphaneye Ekle'}
+                        variant={libraryStatus ? 'primary' : 'secondary'}
+                        className={`w-full h-full ${showLibraryMenu ? 'border-blue-500 bg-gray-700 text-white' : ''}`}
+                        fullWidth
+                        icon={libraryStatus ? <FaCheck size={20} /> : <FaBookOpen size={20} />}
+                    />
+
+                    {showLibraryMenu && (
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-2 z-50">
+                            {[
+                                { status: 'WANT_TO_READ', label: 'Okumak İstiyorum' },
+                                { status: 'READING', label: 'Okuyorum' },
+                                { status: 'READ', label: 'Okudum' }
+                            ].map(opt => (
+                                <button
+                                    type="button"
+                                    key={opt.status}
+                                    onClick={() => handleLibraryAction(opt.status)}
+                                    className={`w-full text-left px-3 py-2 hover:bg-gray-800 rounded text-sm transition-colors flex items-center gap-2 ${libraryStatus === opt.status ? 'text-blue-400 font-bold' : 'text-gray-300 hover:text-white'
+                                        }`}
+                                >
+                                    {libraryStatus === opt.status && <FaCheck size={12} />}
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
                 {/* 2. Favorite */}
                 <Button
