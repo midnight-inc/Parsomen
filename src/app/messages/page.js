@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FaEnvelope, FaPaperPlane, FaSearch, FaInbox, FaSpinner, FaPlus, FaTimes, FaSmile, FaImage, FaFilePdf } from 'react-icons/fa';
 import { IoCheckmarkDone, IoCheckmark } from 'react-icons/io5';
@@ -21,6 +21,8 @@ export default function MessagesPage() {
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+    const searchParams = useSearchParams();
+    const startWithId = searchParams.get('startWith');
 
     // User search state
     const [showSearch, setShowSearch] = useState(false);
@@ -55,6 +57,40 @@ export default function MessagesPage() {
             fetchMessages(selectedConv.partnerId);
         }
     }, [selectedConv]);
+
+    // Handle startWith param
+    useEffect(() => {
+        if (startWithId && conversations.length > 0) {
+            // Check if we already have this conversation
+            const existing = conversations.find(c => c.partnerId === parseInt(startWithId));
+            if (existing) {
+                setSelectedConv(existing);
+                // Clean URL
+                router.replace('/messages');
+            } else {
+                // Fetch user details to start new
+                fetchUserAndStart(startWithId);
+            }
+        } else if (startWithId && !loading && conversations.length === 0) {
+            // If no conversations yet, we still need to try fetching the user
+            fetchUserAndStart(startWithId);
+        }
+    }, [startWithId, conversations, loading]);
+
+    const fetchUserAndStart = async (id) => {
+        try {
+            const res = await fetch(`/api/users/${id}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.user) {
+                    startConversation(data.user);
+                    router.replace('/messages');
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch user for new conversation", error);
+        }
+    };
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

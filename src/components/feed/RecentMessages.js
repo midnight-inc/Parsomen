@@ -28,7 +28,7 @@ export default function RecentMessages() {
             <h3 className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">Mesajlar</h3>
             <div className="space-y-3">
                 {contacts.map(c => (
-                    <Link href={`/messages/${c.id}`} key={c.id} className="flex items-center gap-3 group hover:bg-gray-800/50 p-2 rounded-lg transition-colors">
+                    <Link href={`/messages?startWith=${c.id}`} key={c.id} className="flex items-center gap-3 group hover:bg-gray-800/50 p-2 rounded-lg transition-colors">
                         <div className="relative w-10 h-10 rounded-full bg-gray-700 overflow-hidden shrink-0 border border-transparent group-hover:border-purple-500 transition-colors">
                             <Image src={c.avatar || '/default-avatar.png'} alt={c.username} fill className="object-cover" />
                             {c.unread && <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-gray-900" />}
