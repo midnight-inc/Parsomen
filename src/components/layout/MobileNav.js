@@ -13,7 +13,8 @@ import {
     FaNewspaper,
     FaChartLine,
     FaLayerGroup,
-    FaStar
+    FaStar,
+    FaBell
 } from 'react-icons/fa';
 import { FaBagShopping } from 'react-icons/fa6';
 import { useAuth } from '@/context/AuthContext';
@@ -34,9 +35,30 @@ export default function MobileNav() {
         { label: 'Akış', href: '/feed', icon: FaHome },
         { label: 'Keşfet', href: '/search', icon: FaSearch },
         { label: 'Kitaplık', action: 'menu', icon: FaBookOpen }, // Opens Menu
-        { label: 'Mesajlar', href: '/messages', icon: FaEnvelope },
+        { label: 'Bildirimler', href: '/notifications', icon: FaBell }, // Changed from Messages
         { label: 'Profil', href: user ? `/profile/${user.username}` : '/login', icon: FaUser }
     ];
+
+    // Notification Polling
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (!user) return;
+        const fetchNotifications = async () => {
+            try {
+                const res = await fetch('/api/notifications');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        setUnreadCount(data.unreadCount);
+                    }
+                }
+            } catch (e) { }
+        };
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 15000);
+        return () => clearInterval(interval);
+    }, [user]);
 
     const libraryMenuItems = [
         { label: 'Mağaza', href: '/store', icon: FaShoppingBag, color: 'text-blue-400' },
@@ -104,8 +126,8 @@ export default function MobileNav() {
             )}
 
             {/* Bottom Nav Bar */}
-            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10 z-[70] pb-safe safe-area-bottom">
-                <div className="flex justify-around items-center h-16 px-2">
+            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#09090b]/90 backdrop-blur-xl border-t border-white/5 z-[70] pb-safe safe-area-bottom shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                <div className="flex justify-around items-center h-[60px] px-2">
                     {navItems.map((item) => {
                         const isActive = item.href ? pathname === item.href : isLibraryMenuOpen && item.action === 'menu';
 
@@ -114,17 +136,25 @@ export default function MobileNav() {
                                 key={item.label}
                                 href={item.href || '#'}
                                 onClick={(e) => handleNavClick(e, item)}
-                                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90 ${isActive ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'
+                                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 active:scale-95 group ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                                     }`}
                             >
-                                <div className={`relative p-1.5 rounded-xl transition-all ${isActive && item.action !== 'menu' ? 'bg-purple-500/10' : ''
+                                <div className={`relative p-2 rounded-2xl transition-all duration-300 ${isActive && item.action !== 'menu'
+                                    ? 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 shadow-[0_0_15px_rgba(99,102,241,0.3)]'
+                                    : 'group-hover:bg-white/5'
                                     }`}>
-                                    <item.icon size={20} className={isActive ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
-                                    {item.label === 'Mesajlar' && user?.unreadCount > 0 && (
-                                        <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black"></span>
+                                    <item.icon size={22} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+
+                                    {item.label === 'Bildirimler' && unreadCount > 0 && (
+                                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#09090b] animate-pulse"></span>
                                     )}
                                 </div>
-                                <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
+                                {/* Removed Text Labels for minimal look like Instagram/TikTok except for active? Or kept small? 
+                                    User said "Kullanılabilirliği kolay olsun" -> Keep labels but small.
+                                */}
+                                <span className={`text-[9px] font-medium tracking-wide transition-opacity duration-300 ${isActive ? 'opacity-100 text-purple-200' : 'opacity-60'}`}>
+                                    {item.label}
+                                </span>
                             </Link>
                         );
                     })}

@@ -195,7 +195,7 @@ export default function PublicProfilePage() {
     ].sort((a, b) => b.date - a.date).slice(0, 10);
 
     return (
-        <div className="max-w-5xl mx-auto pt-24 pb-20 animate-in fade-in duration-500 font-sans text-gray-300 px-4">
+        <div className="max-w-5xl mx-auto pt-14 md:pt-24 pb-20 animate-in fade-in duration-500 font-sans text-gray-300 px-0 md:px-4">
             <Toaster position="bottom-right" toastOptions={{
                 style: {
                     background: '#333',
@@ -206,13 +206,13 @@ export default function PublicProfilePage() {
             {/* ... Rest of JSX is identical, just removing alerts if any were inline ... */}
             {/* The handleSave function handles the interactions now via toast. */}
 
-            <div className={`bg-black border ${isEditing ? 'border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.2)]' : 'border-gray-800'} rounded-xl relative overflow-hidden shadow-2xl transition-all duration-300`}>
+            <div className={`bg-black md:border ${isEditing ? 'border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.2)]' : 'border-gray-800'} md:rounded-xl relative overflow-hidden md:shadow-2xl transition-all duration-300 min-h-screen md:min-h-0`}>
 
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black z-0">
                     <div className="opacity-5 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] w-full h-full"></div>
                 </div>
 
-                <div className="relative z-10 p-8 flex flex-col gap-8">
+                <div className="relative z-10 p-4 md:p-8 flex flex-col gap-8">
 
                     <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
                         <div className="relative group shrink-0">

@@ -1,6 +1,7 @@
 "use client";
 import { FaFire, FaTrophy } from 'react-icons/fa';
 import SteamHeader from './SteamHeader';
+import MobileHeader from './MobileHeader';
 import MobileNav from './MobileNav';
 import RefreshButton from '../ui/RefreshButton';
 import BackButton from '../ui/BackButton';
@@ -66,8 +67,13 @@ export default function MainLayout({ children }) {
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-black text-[#e0e0e0]" suppressHydrationWarning>
 
-      {/* Steam Header replaces both Sidebar and Navbar */}
-      <SteamHeader />
+      {/* Desktop Header */}
+      <div className="hidden lg:block z-50">
+        <SteamHeader />
+      </div>
+
+      {/* Mobile Header */}
+      <MobileHeader />
 
       {/* Live Activity Ticker - Sticky below header */}
       <div className="sticky top-0 z-40 hidden lg:block">
